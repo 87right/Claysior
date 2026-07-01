@@ -12,6 +12,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(Setup)
+        .add_plugins(Input)
         .run();
 }
 
@@ -68,6 +69,47 @@ fn world_gen(mut world_grid: ResMut<WorldGrid>, mut commands: Commands) {
                 ),
             )).id();
             world_grid.0.insert(v, id);
+        }
+    }
+}
+
+#[derive(Resource, Default)]
+struct CameraDragData {
+    last_cursor_pos: Vec2,
+    last_camera_pos: Vec3,
+}
+
+struct Input;
+impl Plugin for Input {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(CameraDragData::default());
+        app.add_systems(Update, camera_movement_system);
+    }
+}
+
+fn camera_movement_system(
+    mut camera_drag_data: ResMut<CameraDragData>, 
+    mut camera_query: Single<&mut Transform, With<Camera>>,
+    buttons: Res<ButtonInput<MouseButton>>, 
+    window: Single<&Window>
+) {
+    if let Some(position) = window.cursor_position(){
+        let mut transform = camera_query.into_inner();
+
+        if buttons.just_pressed(MouseButton::Middle) {
+            camera_drag_data.last_cursor_pos = position;
+        }
+
+        if buttons.pressed(MouseButton::Middle) {
+            
+                transform.translation = camera_drag_data.last_camera_pos + (camera_drag_data.last_cursor_pos - position).extend(0.)*Vec3 {x: 1., y:-1., z: 1.};
+                camera_drag_data.last_cursor_pos = position;
+                camera_drag_data.last_camera_pos = transform.translation;
+            
+        }
+
+        if buttons.just_released(MouseButton::Middle) {
+            camera_drag_data.last_camera_pos = transform.translation;
         }
     }
 }
