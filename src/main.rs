@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    color::palettes::css::*,
+};
 use std::collections::HashMap;
 
 const CELL_SIZE: f32 = 32.;
@@ -45,7 +48,7 @@ fn setup_camera(mut commands: Commands){
 
 fn world_gen(mut world_grid: ResMut<WorldGrid>, mut commands: Commands) {
 
-    let empty_color = Color::srgb(0.3, 0.3, 0.3);
+    let empty_color = Color::Srgba(AQUA);
 
     for y in 0..MAP_HEIGHT {
         for x in 0..MAP_WIDTH {
