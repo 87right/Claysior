@@ -101,11 +101,9 @@ fn camera_movement_system(
         }
 
         if buttons.pressed(MouseButton::Middle) {
-            
-                transform.translation = camera_drag_data.last_camera_pos + (camera_drag_data.last_cursor_pos - position).extend(0.)*Vec3 {x: 1., y:-1., z: 1.};
-                camera_drag_data.last_cursor_pos = position;
-                camera_drag_data.last_camera_pos = transform.translation;
-            
+            transform.translation = camera_drag_data.last_camera_pos + (camera_drag_data.last_cursor_pos - position).extend(0.)*Vec3 {x: 1., y:-1., z: 1.};
+            camera_drag_data.last_cursor_pos = position;
+            camera_drag_data.last_camera_pos = transform.translation;
         }
 
         if buttons.just_released(MouseButton::Middle) {
