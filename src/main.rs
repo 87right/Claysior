@@ -5,7 +5,7 @@ use bevy::{
 };
 use std::collections::HashMap;
 
-const CELL_SIZE: f32 = 32.;
+const CELL_SIZE: f32 = 64.;
 const MAP_HEIGHT: i32 = 16;
 const MAP_WIDTH: i32 = 16;
 
@@ -48,7 +48,11 @@ fn setup_camera(mut commands: Commands){
     ));
 }
 
-fn world_gen(mut world_grid: ResMut<WorldGrid>, mut commands: Commands) {
+fn world_gen(
+    mut world_grid: ResMut<WorldGrid>, 
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
 
     let empty_color = Color::Srgba(AQUA);
 
@@ -58,11 +62,9 @@ fn world_gen(mut world_grid: ResMut<WorldGrid>, mut commands: Commands) {
             let id = commands.spawn((
                 GridPos (v), 
                 GridState::Empty,
-                Sprite {
-                    color: empty_color,
-                    custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                    ..default()
-                },
+                Sprite::from_image(
+                    asset_server.load("textures/tile.png")
+                ),
                 Transform::from_xyz (
                     x as f32 * CELL_SIZE,
                     y as f32 * CELL_SIZE,
