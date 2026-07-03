@@ -1,9 +1,6 @@
 /* src/grid/plugins.rs */
 
-use bevy::{
-    color::palettes::css::*,
-    prelude::*,
-};
+use bevy::prelude::*;
 use crate::grid::components::*;
 use crate::constants::*;
 
@@ -33,9 +30,6 @@ fn create_empty_world_grid(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-
-    let empty_color = Color::Srgba(AQUA);
-
     for y in 0..MAP_HEIGHT {
         for x in 0..MAP_WIDTH {
             let v = IVec2 {x, y};
