@@ -29,7 +29,6 @@ fn main() {
 pub struct Setup;
 impl Plugin for Setup {
     fn build(&self, app: &mut App) {
-        app.insert_resource(WorldGrid::default());
         app.add_systems(Startup, setup_camera);
     }
 }
