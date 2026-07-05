@@ -1,4 +1,4 @@
-/* src/grid/plugins.rs */
+//! # Path: src/grid/plugins.rs
 
 use bevy::prelude::*;
 use crate::grid::components::*;

@@ -1,4 +1,4 @@
-/* src/camera/components.rs */
+//! # Path: src/camera/components.rs
 
 use bevy::prelude::*;
 

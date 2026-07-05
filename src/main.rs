@@ -1,4 +1,4 @@
-/* src/main.rs */
+//! # Path: src/main.rs
 
 #![allow(dead_code)]
 

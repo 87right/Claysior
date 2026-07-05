@@ -1,4 +1,5 @@
-/* src/grid/components.rs */
+//! # Path: src/grid/components.rs
+
 use bevy::prelude::*;
 use std::collections::HashMap;
 
