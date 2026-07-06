@@ -50,6 +50,7 @@ fn create_empty_world_grid(
             let v = IVec2 {x, y};
             let id = commands.spawn((
                 GridPos (v), 
+                crate::nodes::empty::Empty {},
                 Sprite::from_image(
                     asset_server.load("textures/tile.png")
                 ),
