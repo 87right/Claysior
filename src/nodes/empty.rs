@@ -2,10 +2,14 @@
 
 use bevy::prelude::*;
 use crate::grid::messages::*;
-use crate::nodes::clay_ore::ClayOre;
+use crate::nodes::{
+    clay_ore::ClayOre,
+    conveyor::Conveyor,
+    commons::*,
+};
 use crate::commons::*;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Empty;
 impl Registerable for Empty {
     fn register(app: &mut App) {
@@ -18,16 +22,17 @@ impl Registerable for Empty {
 }
 
 fn on_right_clicked(
+    mut command: Commands,
     mut rc: MessageReader<RightClicked>,
-    mut q : Query<&mut Sprite, With<Empty>>,
-    asset_server: Res<AssetServer>,
+    mut writer: MessageWriter<Placed>,
+    q : Query<&Empty>,
 ) {
     for m in rc.read() {
         let clicked_entity = m.0;
-        if let Ok(mut sprite) = q.get_mut(clicked_entity) {
-            *sprite = Sprite::from_image(
-                asset_server.load("textures/debug_tile.png")
-            );
+        if let Ok(_) = q.get(clicked_entity) {
+            command.entity(clicked_entity).remove::<Empty>();
+            command.entity(clicked_entity).insert(Conveyor::default());
+            writer.write(Placed (clicked_entity));
         }
     }
 }
@@ -42,7 +47,7 @@ fn on_left_clicked(
         let clicked_entity = m.0;
         if let Ok(_) = q.get(clicked_entity) {
             command.entity(clicked_entity).remove::<Empty>();
-            command.entity(clicked_entity).insert(ClayOre {health: 5});
+            command.entity(clicked_entity).insert(ClayOre::default());
             writer.write(Placed (clicked_entity));
         }
     }
@@ -57,7 +62,7 @@ fn on_placed(
         let clicked_entity = m.0;
         if let Ok(mut sprite) = q.get_mut(clicked_entity) {
             *sprite = Sprite::from_image(
-                asset_server.load("textures/tile.png")
+                asset_server.load("textures/tile/empty.png")
             );
         }
     }

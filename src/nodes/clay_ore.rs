@@ -7,6 +7,8 @@ use crate::grid::{
     components::*,
 };
 use crate::commons::*;
+use crate::movables::item::*;
+use crate::nodes::commons::*;
 
 #[derive(Component)]
 pub struct ClayOre {
@@ -18,6 +20,13 @@ impl Registerable for ClayOre {
             on_left_clicked,
         ));
         app.add_systems(PostUpdate, on_placed);
+    }
+}
+impl Default for ClayOre {
+    fn default() -> Self {
+        Self {
+            health: 5
+        }
     }
 }
 
@@ -38,13 +47,11 @@ fn on_left_clicked(
                 writer.write(Placed (clicked_entity));
 
                 command.spawn((
-                    crate::movables::item::Item {
-                        id: 0,
+                    Item {
+                        id: Type::Clay,
                         size: 1,
                     },
-                    Sprite::from_image(
-                        asset_server.load("textures/item/clay.png")
-                    ),
+                    Type::Clay.get_sprite(&asset_server),
                     Transform::from_xyz(
                         grid_pos.x as f32 * CELL_SIZE,
                         grid_pos.y as f32 * CELL_SIZE,
@@ -66,7 +73,7 @@ fn on_placed(
         let clicked_entity = m.0;
         if let Ok(mut sprite) = q.get_mut(clicked_entity) {
             *sprite = Sprite::from_image(
-                asset_server.load("textures/clay_ore.png")
+                asset_server.load("textures/tile/clay_ore.png")
             );
         }
     }

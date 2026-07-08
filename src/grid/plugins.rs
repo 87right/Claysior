@@ -52,7 +52,7 @@ fn create_empty_world_grid(
                 GridPos (v), 
                 crate::nodes::empty::Empty {},
                 Sprite::from_image(
-                    asset_server.load("textures/tile.png")
+                    asset_server.load("textures/tile/empty.png")
                 ),
                 Transform::from_xyz (
                     x as f32 * CELL_SIZE,
