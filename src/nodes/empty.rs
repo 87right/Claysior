@@ -20,6 +20,13 @@ impl Registerable for Empty {
         app.add_systems(PostUpdate, on_placed);
     }
 }
+impl Spawnable for Empty {
+    fn get_bundle() -> impl Bundle {
+        (
+            Empty,
+        )
+    }
+}
 
 fn on_right_clicked(
     mut command: Commands,
@@ -31,7 +38,7 @@ fn on_right_clicked(
         let clicked_entity = m.0;
         if let Ok(_) = q.get(clicked_entity) {
             command.entity(clicked_entity).remove::<Empty>();
-            command.entity(clicked_entity).insert(ClayOre::default());
+            command.entity(clicked_entity).insert(ClayOre::get_bundle());
             writer.write(Placed (clicked_entity));
         }
     }

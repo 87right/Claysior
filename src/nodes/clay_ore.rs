@@ -8,6 +8,7 @@ use crate::grid::{
 };
 use crate::commons::*;
 use crate::movables::item::*;
+use crate::nodes::commons::Spawnable;
 
 #[derive(Component)]
 pub struct ClayOre {
@@ -21,11 +22,13 @@ impl Registerable for ClayOre {
         app.add_systems(PostUpdate, on_placed);
     }
 }
-impl Default for ClayOre {
-    fn default() -> Self {
-        Self {
-            health: 5
-        }
+impl Spawnable for ClayOre {
+    fn get_bundle() -> impl Bundle {
+        (
+            ClayOre {
+                health: 5,
+            },
+        )
     }
 }
 
@@ -42,7 +45,7 @@ fn on_left_clicked(
             val.health -= 1;
             if val.health == 0 {
                 command.entity(clicked_entity).remove::<ClayOre>();
-                command.entity(clicked_entity).insert(crate::nodes::empty::Empty);
+                command.entity(clicked_entity).insert(crate::nodes::empty::Empty::get_bundle());
                 writer.write(Placed (clicked_entity));
 
                 command.spawn((

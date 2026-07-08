@@ -14,11 +14,13 @@ impl Registerable for Conveyor {
         app.add_systems(PostUpdate, on_placed);
     }
 }
-impl Default for Conveyor {
-    fn default() -> Self {
-        Self {
-            inventory: Inventory::create_empty(InventorySize(1))
-        }
+impl Spawnable for Conveyor {
+    fn get_bundle() -> impl Bundle {
+        (
+            Conveyor {
+                inventory: Inventory::create_empty(InventorySize(1)),
+            },
+        )
     }
 }
 
