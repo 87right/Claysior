@@ -59,13 +59,14 @@ fn on_update(
             None => {
                 for (item, transform, e) in items {
                     let pos = grid_pos.to_bottom_left_vec2();
-                    let distance = Vec2 {
+                    let diff = Vec2 {
                         x: transform.translation.x - pos.x,
                         y: transform.translation.y - pos.y,
                     };
-                    if distance.length() < CELL_SIZE * 1.5 {
+                    if diff.length() < CELL_SIZE * 1.5 {
                         inventory.write_item(InventorySlotID(0), InventorySlot(Some(item.clone())));
                         command.entity(e).despawn();
+                        return;
                     }
                 }
             }
@@ -80,7 +81,7 @@ fn on_left_clicked(
     for m in lc.read() {
         let clicked_entity = m.0;
         if let Ok(mut inventory) = q.get_mut(clicked_entity) {
-            inventory.write_item(InventorySlotID(0), InventorySlot(None));
+            inventory.take_item(InventorySlotID(0));
         }
     }
 }
