@@ -24,3 +24,6 @@ impl GridPos {
         }
     }
 }
+
+#[derive(Component)]
+pub struct BackGround;

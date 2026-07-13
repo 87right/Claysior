@@ -77,16 +77,17 @@ fn on_left_clicked(
 
 
 fn on_placed(
+    mut commands: Commands,
     mut reader: MessageReader<Placed>,
-    mut q : Query<&mut Sprite, With<ClayOre>>,
+    mut q : Query<(), With<ClayOre>>,
     asset_server: Res<AssetServer>,
 ) {
     for m in reader.read() {
         let clicked_entity = m.0;
-        if let Ok(mut sprite) = q.get_mut(clicked_entity) {
-            *sprite = Sprite::from_image(
+        if q.get_mut(clicked_entity).is_ok() {
+            commands.entity(clicked_entity).insert(Sprite::from_image(
                 asset_server.load("textures/tile/clay_ore.png")
-            );
+            ));
         }
     }
 }

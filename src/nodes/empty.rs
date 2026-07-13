@@ -50,16 +50,14 @@ fn on_left_clicked(
 }
 
 fn on_placed(
+    mut command: Commands,
     mut reader: MessageReader<Placed>,
-    mut q : Query<&mut Sprite, With<Empty>>,
-    asset_server: Res<AssetServer>,
+    q : Query<(), With<Empty>>,
 ) {
     for m in reader.read() {
         let clicked_entity = m.0;
-        if let Ok(mut sprite) = q.get_mut(clicked_entity) {
-            *sprite = Sprite::from_image(
-                asset_server.load("textures/tile/empty.png")
-            );
+        if q.get(clicked_entity).is_ok() {
+            command.entity(clicked_entity).remove::<Sprite>();
         }
     }
 }

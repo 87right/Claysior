@@ -1,5 +1,6 @@
 //! # Path: src/grid/plugins.rs
 
+use bevy::input::mouse::MouseButton::Back;
 use bevy::prelude::*;
 use crate::grid::{
     components::*,
@@ -45,15 +46,23 @@ fn create_empty_world_grid(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    commands.spawn((
+        BackGround,
+        Transform::from_xyz(
+            CELL_SIZE*(MAP_WIDTH as f32 / 2. - 0.5),
+            CELL_SIZE*(MAP_HEIGHT as f32 / 2. - 0.5),
+            0.
+        ),
+        Sprite::from_image(
+            asset_server.load("textures/background/basic_tile.png")
+        )
+    ));
     for y in 0..MAP_HEIGHT {
         for x in 0..MAP_WIDTH {
             let v = IVec2 {x, y};
             let id = commands.spawn((
                 GridPos (v), 
                 crate::nodes::empty::Empty {},
-                Sprite::from_image(
-                    asset_server.load("textures/tile/empty.png")
-                ),
                 Transform::from_xyz (
                     x as f32 * CELL_SIZE,
                     y as f32 * CELL_SIZE,
