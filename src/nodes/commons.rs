@@ -12,7 +12,7 @@ impl Inventory {
     pub fn check_item(&self, slot_id: InventorySlotID) -> Option<&Item> {
         self.0.get(slot_id.0)?.0.as_ref()
     }
-    pub fn take_item(&mut self, slot_id: &InventorySlotID) -> Option<Item> {
+    pub fn take_item(&mut self, slot_id: InventorySlotID) -> Option<Item> {
         self.0.get_mut(slot_id.0)?.0.take()
     }
     pub fn write_item(&mut self, slot_id: InventorySlotID, item: InventorySlot) {
@@ -48,7 +48,7 @@ impl InventorySlot {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct InventorySlotID (pub usize);
 pub struct InventorySize (pub usize);
 
@@ -64,6 +64,17 @@ pub trait Spawnable {
     fn get_bundle() -> impl Bundle;
 }
 
+/*
+    TODO: From から適切な要素を削除。
+    たとえば
+    (
+        MachineComponent,
+        Inventory
+    )
+    があった場合、これでは Inventory が残ってしまう。
+
+    Input/Output の挙動を統一した場合に好ましくない挙動をする可能性あり。
+*/
 pub fn replace<From: Bundle, To: Spawnable>(
     command: &mut Commands,
     writer: &mut MessageWriter<Placed>,

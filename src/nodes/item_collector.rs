@@ -77,7 +77,7 @@ fn on_left_clicked(
     for m in lc.read() {
         let clicked_entity = m.0;
         if let Ok(mut inventory) = q.get_mut(clicked_entity) {
-            inventory.take_item(&InventorySlotID(0));
+            inventory.take_item(InventorySlotID(0));
         }
     }
 }

@@ -5,7 +5,8 @@ use crate::grid::messages::*;
 use crate::nodes::{
     clay_ore::ClayOre,
     conveyor::Conveyor,
-    item_collector::*,
+    item_collector::ItemCollector,
+    clay_furnace::ClayFurnace,
     commons::*,
 };
 use crate::commons::*;
@@ -44,6 +45,8 @@ fn on_left_clicked(
                 replace::<Empty, Conveyor>(&mut command, &mut writer, clicked_entity);
             } else if keys.pressed(KeyCode::Digit3) {
                 replace::<Empty, ItemCollector>(&mut command, &mut writer, clicked_entity);
+            } else if keys.pressed(KeyCode::Digit4) {
+                replace::<Empty, ClayFurnace>(&mut command, &mut writer, clicked_entity);
             }
         }
     }

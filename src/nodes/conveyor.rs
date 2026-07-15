@@ -56,7 +56,7 @@ fn on_item_sent(
         conveyor.timer.reset();
 
         if let Ok([mut to_inv, mut from_inv]) = inventory_q.get_many_mut([m.to, m.from]) {
-            let new_item = from_inv.take_item(&m.index);
+            let new_item = from_inv.take_item(m.index);
             to_inv.write_item(InventorySlotID(0), InventorySlot(new_item.clone()));
             if let Some(item) = new_item {
                 let item_pos = grid_pos.to_bottom_left_vec2();
