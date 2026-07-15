@@ -4,19 +4,21 @@ use bevy::prelude::*;
 
 use crate::{
     commons::Registerable, 
-    grid::messages::*, 
+    grid::{
+        components::GridPos, 
+        messages::*
+    }, 
     movables::item::{
         Item, 
         Type
-    }, 
-    nodes::commons::{
+    }, nodes::commons::{
+        InputPort, 
         Inventory, 
         InventorySize, 
-        InventorySlot,
+        InventorySlot, 
         InventorySlotID, 
+        Port, 
         Spawnable,
-        InputPort,
-        Port,
     }
 };
 
@@ -57,15 +59,28 @@ impl Spawnable for ClayFurnace {
 
 fn on_update(
     mut commands: Commands,
-    q: Query<(&mut ClayFurnace, &mut Inventory, &mut InputPort, Entity)>,
+    q: Query<(&mut ClayFurnace, &mut Inventory, &mut InputPort, &GridPos, Entity)>,
     time: Res<Time>,
     asset: Res<AssetServer>,
 ) {
-    for (mut furnace, mut inventory, mut input, e) in q {
+    for (mut furnace, mut inventory, mut input, grid_pos, e) in q {
         if inventory.check_item(SLOT_INPUT).is_some() {
             if furnace.timer.tick(time.delta()).just_finished() {
                 inventory.take_1(SLOT_INPUT);
                 furnace.timer.reset();
+                let pos = grid_pos.to_bottom_left_vec2();
+                commands.spawn((
+                    Item {
+                        id: Type::Brick,
+                        size: 1,
+                    },
+                    Type::Brick.get_sprite(&asset),
+                    Transform::from_xyz(
+                        pos.x,
+                        pos.y,
+                        1.
+                    )
+                ));
             }
         }
         if input.recieved {

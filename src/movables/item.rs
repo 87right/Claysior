@@ -18,12 +18,14 @@ pub struct DisplayItem;
 
 #[derive(Clone, PartialEq, Copy)]
 pub enum Type {
-    Clay
+    Clay,
+    Brick,
 }
 impl Type {
     fn get_id_str(&self) -> &str {
         match self {
-            Type::Clay => "clay"
+            Type::Clay => "clay",
+            Type::Brick => "brick",
         }
     }
     pub fn get_sprite(&self, asset_server: &Res<AssetServer>) -> Sprite {
@@ -31,7 +33,8 @@ impl Type {
     }
     pub fn get_max_stack_size(&self) -> u64 {
         match self {
-            Type::Clay => 4
+            Type::Clay => 4,
+            Type::Brick => 4,
         }
     }
 }

@@ -51,7 +51,7 @@ impl Inventory {
 pub struct InventorySlot (pub Option<Item>);
 impl InventorySlot {
     pub fn insert(&mut self, item: Item) -> bool {
-        if let Some(mut content) = self.0 {
+        if let Some(content) = &mut self.0 {
             if content.id == item.id {
                 content.size += item.size;
                 true
@@ -149,12 +149,14 @@ impl InputPort {
 
 #[derive(Clone, Copy)]
 pub enum Port{
-    Single(InventorySlotID)
+    Single(InventorySlotID),
+    Range(InventorySlotID, InventorySlotID)
 }
 impl Port {
-    fn get_target_slot_id(&self) -> Vec<InventorySlotID> {
+    fn get_target_slot_id(&self) -> Vec<InventorySlotID>{
         match *self {
-            Port::Single (id) => vec![id]
+            Port::Single (id) => vec![id],    
+            Port::Range (begin, end) => ((begin.0)..=(end.0)).map(InventorySlotID).collect()
         }
     }
 }
