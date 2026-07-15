@@ -3,8 +3,20 @@
 use bevy::prelude::*;
 
 use crate::{
-    commons::Registerable, grid::messages::*, movables::item::{Item, Type}, nodes::commons::{
-        Inventory, InventorySize, InventorySlot, InventorySlotID, Spawnable,
+    commons::Registerable, 
+    grid::messages::*, 
+    movables::item::{
+        Item, 
+        Type
+    }, 
+    nodes::commons::{
+        Inventory, 
+        InventorySize, 
+        InventorySlot,
+        InventorySlotID, 
+        Spawnable,
+        InputPort,
+        Port,
     }
 };
 
@@ -31,31 +43,57 @@ impl Spawnable for ClayFurnace {
             ClayFurnace {
                 timer: Timer::from_seconds(10., TimerMode::Once)
             },
-            Inventory::create_empty(
+            Inventory::create_empty (
                 InventorySize (3),
-            )
+            ),
+            InputPort::new(
+                Port::Single(
+                    InventorySlotID(0)
+                ),
+            ),
         )
     }
 }
 
 fn on_update(
     mut commands: Commands,
-    q: Query<(&mut ClayFurnace, &mut Inventory, Entity)>,
+    q: Query<(&mut ClayFurnace, &mut Inventory, &mut InputPort, Entity)>,
     time: Res<Time>,
     asset: Res<AssetServer>,
 ) {
-    for (mut furnace, mut inventory, e) in q {
+    for (mut furnace, mut inventory, mut input, e) in q {
         if inventory.check_item(SLOT_INPUT).is_some() {
             if furnace.timer.tick(time.delta()).just_finished() {
-                inventory.take_item(SLOT_INPUT);
-                commands.entity(e).insert(
-                    Sprite::from_image(
-                        asset.load("textures/tile/clay_furnace_0.png")
-                    )
-                );
+                inventory.take_1(SLOT_INPUT);
+                furnace.timer.reset();
             }
         }
+        if input.recieved {
+            input.recieved = false;
+            if let Some(e) = input.display_item.take() {
+                commands.entity(e).despawn();
+            }
+        }
+        image_refresh(&mut commands.entity(e), &inventory, &asset);
     }
+}
+
+fn image_refresh(
+    commands: &mut EntityCommands,
+    inventory: &Inventory,
+    asset: &Res<AssetServer>,
+) {
+    commands.insert(
+        Sprite::from_image(
+            asset.load(
+                if inventory.check_item(SLOT_INPUT).is_some() {
+                    "textures/tile/clay_furnace_1.png"
+                } else {
+                    "textures/tile/clay_furnace_0.png"
+                }
+            )
+        )
+    );
 }
 
 fn on_left_clicked(

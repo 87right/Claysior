@@ -28,6 +28,23 @@ impl Inventory {
         }
         false
     }
+    pub fn take_1(&mut self, slot_id: InventorySlotID) -> bool {
+        if let Some(slot) = self.0.get_mut(slot_id.0) {
+            slot.take_1()
+        } else {
+            false
+        }
+    }
+    pub fn can_insert(&self, input: InputPort, item: Item) -> bool {
+        for slot_id in input.port.get_target_slot_id() {
+            if let Some(slot) = self.0.get(slot_id.0) {
+                if slot.can_insert(item) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }
 
 #[derive(Clone)]
@@ -43,6 +60,26 @@ impl InventorySlot {
             }
         } else {
             self.0 = Some(item);
+            true
+        }
+    }
+    pub fn take_1(&mut self) -> bool {
+        let mut is_empty = false;
+        let mut result = false;
+        if let Some(item) = &mut self.0 {
+            item.size -= 1;
+            is_empty = item.size == 0;
+            result = true;
+        }
+        if is_empty {
+            self.0 = None;
+        }
+        result
+    }
+    pub fn can_insert(&self, item: Item) -> bool {
+        if let Some(self_item) = self.0 {
+            item.id == self_item.id
+        } else {
             true
         }
     }
@@ -90,4 +127,34 @@ pub struct Shake {
     pub scale: f32,
     pub pace: f32,
     pub timer: Timer
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct InputPort{
+    pub port: Port,
+    pub is_active: bool,
+    pub recieved: bool,
+    pub display_item: Option<Entity>,
+}
+impl InputPort {
+    pub fn new(port: Port) -> Self {
+        Self {
+            port: port,
+            is_active: true,
+            recieved: false,
+            display_item: None,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Port{
+    Single(InventorySlotID)
+}
+impl Port {
+    fn get_target_slot_id(&self) -> Vec<InventorySlotID> {
+        match *self {
+            Port::Single (id) => vec![id]
+        }
+    }
 }
