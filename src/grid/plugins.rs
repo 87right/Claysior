@@ -6,6 +6,7 @@ use crate::grid::{
     messages::*,
 };
 use crate::constants::*;
+use crate::movables::item::{DisplayItem, Item};
 
 pub struct GridPlugins;
 impl Plugin for GridPlugins {
@@ -37,6 +38,7 @@ fn add_systems_update(app: &mut App) {
     app.add_systems(Update, (
         handle_right_click,
         handle_left_click,
+        world_regen,
     ));
 }
 
@@ -108,5 +110,43 @@ fn handle_left_click(
     })
     && mouse_button.just_released(MouseButton::Left) {
         left.write(LeftClicked (*entity));
+    }
+}
+
+fn world_regen(
+    mut commands: Commands,
+    mut world_grid: ResMut<WorldGrid>,
+    item_q: Query<Entity, With<Item>>,
+    display_q: Query<Entity, With<DisplayItem>>,
+
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::KeyR)
+    && keys.pressed(KeyCode::ControlLeft) {
+        for y in 0..MAP_HEIGHT {
+            for x in 0..MAP_WIDTH {
+                let v = IVec2 {x, y};
+                if let Some(grid_entity) = world_grid.0.insert(
+                    v,
+                    commands.spawn((
+                        GridPos (v), 
+                        crate::nodes::empty::Empty {},
+                        Transform::from_xyz (
+                            x as f32 * CELL_SIZE,
+                            y as f32 * CELL_SIZE,
+                            0.
+                        )
+                    )).id()
+                ) {
+                    commands.entity(grid_entity).despawn();
+                } 
+            }
+        }
+        for item in item_q {
+            commands.entity(item).despawn();
+        }
+        for display_item in display_q {
+            commands.entity(display_item).despawn();
+        }
     }
 }
