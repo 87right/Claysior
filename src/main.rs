@@ -3,7 +3,6 @@
 #![allow(dead_code)]
 
 mod constants;
-mod commons;
 mod camera;
 
 use bevy::prelude::*;
