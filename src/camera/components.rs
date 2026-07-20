@@ -1,5 +1,3 @@
-//! # Path: src/camera/components.rs
-
 use bevy::prelude::*;
 
 #[derive(Resource, Default)]

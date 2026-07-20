@@ -1,10 +1,8 @@
-//! # Path: src/camera/plugins.rs
-
 use bevy::{
     prelude::*,
     input::mouse::*,
 };
-use crate::constants::*;
+use crate::common::constant::*;
 use crate::camera::components::*;
 
 pub struct CameraPlugins;
