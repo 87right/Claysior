@@ -2,19 +2,38 @@ use bevy::{
     prelude::*,
 };
 use crate::grid::{
-        component::{GridPos, PlaceBuff}, message::{
-            LeftClicked, Placed, RightClicked
+        component::{
+            GridPos, 
+            PlaceBuff
+        }, message::{
+            LeftClicked, Placed, Removed, RightClicked
         }, resource::{
-            GridEntityMap, 
-            SpawnTable
-        }, system_set::*,
+            Background, GridEntityMap, GridGenSetting, SpawnTable
+        }, system_set::*, util::{reload_background, respawn_grid},
     };
 
 pub struct GridPlugin;
 impl Plugin for GridPlugin{
     fn build(&self, app: &mut App) {
         register_grid_update_schedule(app);
+        add_message(app);
+        add_resource(app);
+        app.add_systems(Startup, (
+            respawn_grid,
+            reload_background,
+        ));
+        app.add_systems(Update, (
+            handle_mouse_click,
+            consume_place_buff,
+        ));
     }
+}
+
+fn add_message(app: &mut App) {
+    app.add_message::<Removed>();
+    app.add_message::<Placed>();
+    app.add_message::<RightClicked>();
+    app.add_message::<LeftClicked>();
 }
 
 fn register_grid_update_schedule(app: &mut App) {
@@ -24,9 +43,16 @@ fn register_grid_update_schedule(app: &mut App) {
         GridFixed::IOReserve.after(GridFixed::OnPlaced),
         GridFixed::IOExecute.after(GridFixed::IOReserve),
         GridFixed::MainUpdate.after(GridFixed::IOExecute),
-        GridFixed::Cleanup.after(GridFixed::MainUpdate),
-        GridFixed::OnRemoved.after(GridFixed::Cleanup),
+        GridFixed::OnRemoved.after(GridFixed::MainUpdate),
+        GridFixed::Cleanup.after(GridFixed::OnRemoved),
     ));
+}
+
+fn add_resource(app: &mut App) {
+    app.insert_resource(GridEntityMap::default());
+    app.insert_resource(SpawnTable::default());
+    app.insert_resource(GridGenSetting::default());
+    app.insert_resource(Background::default());
 }
 
 fn consume_place_buff(

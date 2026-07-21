@@ -7,6 +7,6 @@ pub enum GridFixed {
     IOReserve,
     IOExecute,
     MainUpdate,
-    Cleanup,
     OnRemoved,
+    Cleanup,
 }

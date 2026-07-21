@@ -12,5 +12,6 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(crate::camera::plugins::CameraPlugins)
         .add_plugins(crate::grid::plugin::GridPlugin)
+        .add_plugins(crate::node::plugin::NodePlugin)
         .run();
 }
