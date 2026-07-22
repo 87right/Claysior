@@ -19,9 +19,6 @@ impl ItemType {
     }
 }
 
-#[derive(Component)]
-pub struct DisplayItem();
-
 #[derive(Component, Clone, Copy)]
 pub struct ItemSize(pub u32);
 impl std::ops::Add for ItemSize {
@@ -32,6 +29,12 @@ impl std::ops::Add for ItemSize {
         )
     }
 }
+
+#[derive(Component)]
+pub struct Pickupable;
+
+#[derive(Component)]
+pub struct Age(pub u32);
 
 #[derive(Component)]
 pub struct Inventory(pub Vec<InventorySlot>);
