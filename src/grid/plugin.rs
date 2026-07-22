@@ -8,7 +8,7 @@ use crate::grid::{
         }, message::{
             LeftClicked, Placed, Removed, RightClicked
         }, resource::{
-            Background, GridEntityMap, GridGenSetting, SpawnTable
+            Background, GridEntityMap, GridGenSetting, SpawnTable, SyncMouseButtonInput
         }, system_set::*, util::{reload_background, respawn_grid},
     };
 
@@ -22,10 +22,12 @@ impl Plugin for GridPlugin{
             respawn_grid,
             reload_background,
         ));
-        app.add_systems(Update, (
+        app.add_systems(Update, recieve_update_input);
+        app.add_systems(FixedUpdate, (
             handle_mouse_click,
             consume_place_buff,
         ));
+        app.add_systems(FixedLast, clear_mid_fixed_input);
     }
 }
 
@@ -37,7 +39,7 @@ fn add_message(app: &mut App) {
 }
 
 fn register_grid_update_schedule(app: &mut App) {
-    app.insert_resource(Time::<Fixed>::from_hz(1.0));
+    app.insert_resource(Time::<Fixed>::from_hz(20.0));
     app.configure_sets(FixedUpdate, (
         GridFixed::OnPlaced,
         GridFixed::IOReserve.after(GridFixed::OnPlaced),
@@ -53,6 +55,7 @@ fn add_resource(app: &mut App) {
     app.insert_resource(SpawnTable::default());
     app.insert_resource(GridGenSetting::default());
     app.insert_resource(Background::default());
+    app.insert_resource(SyncMouseButtonInput::default());
 }
 
 fn consume_place_buff(
@@ -69,10 +72,23 @@ fn consume_place_buff(
     }
 }
 
+fn recieve_update_input(
+    mut sync_mouse_button: ResMut<SyncMouseButtonInput>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
+) {
+    sync_mouse_button.write(&mouse_button);
+}
+
+fn clear_mid_fixed_input(
+    mut sync_mouse_button: ResMut<SyncMouseButtonInput>,
+) {
+    sync_mouse_button.clear();
+}
+
 fn handle_mouse_click(
     mut right_clicked_writer: MessageWriter<RightClicked>,
     mut left_clicked_writer: MessageWriter<LeftClicked>,
-    mouse_buttons: Res<ButtonInput<MouseButton>>,
+    mouse_buttons: Res<SyncMouseButtonInput>,
     grid_entity_map: Res<GridEntityMap>,
     window: Single<&Window>,
     camera: Single<(&Camera, &GlobalTransform)>,

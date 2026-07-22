@@ -55,3 +55,58 @@ impl Background {
         val
     }
 }
+
+#[derive(Resource, Default)]
+pub struct SyncMouseButtonInput{
+    p: u8,
+    r: u8,
+    jp: u8,
+    jr: u8,
+}
+impl SyncMouseButtonInput {
+    const LEFT   : u8 = 1 << 0;
+    const RIGHT  : u8 = 1 << 1;
+    const MIDDLE : u8 = 1 << 2;
+    const BACK   : u8 = 1 << 3;
+    const FORWARD: u8 = 1 << 4;
+    fn dispatch(button: MouseButton) -> u8 {
+        match button {
+            MouseButton::Left    => Self::LEFT,
+            MouseButton::Right   => Self::RIGHT,
+            MouseButton::Middle  => Self::MIDDLE,
+            MouseButton::Back    => Self::BACK,
+            MouseButton::Forward => Self::FORWARD,
+            _ => 0,
+        }
+    }
+    fn read(mut f: impl FnMut(MouseButton) -> bool) -> u8 {
+        let val =
+          if f(MouseButton::Left   ) {Self::LEFT   } else {0}
+        | if f(MouseButton::Right  ) {Self::RIGHT  } else {0}
+        | if f(MouseButton::Middle ) {Self::MIDDLE } else {0}
+        | if f(MouseButton::Back   ) {Self::BACK   } else {0}
+        | if f(MouseButton::Forward) {Self::FORWARD} else {0};
+        val
+    }
+    pub fn write(&mut self, button: &ButtonInput<MouseButton>) {
+        self.p  |= Self::read(|b| button.pressed(b));
+        self.r  |= Self::read(|b| !button.pressed(b));
+        self.jp |= Self::read(|b| button.just_pressed(b));
+        self.jr |= Self::read(|b| button.just_released(b));
+    }
+    pub fn clear(&mut self) {
+        self.p = 0; self.r = 0; self.jp = 0; self.jr = 0;
+    }
+    pub fn pressed(&self, button: MouseButton) -> bool {
+        self.p & Self::dispatch(button) > 0
+    }
+    pub fn released(&self, button: MouseButton) -> bool {
+        self.r & Self::dispatch(button) > 0
+    }
+    pub fn just_pressed(&self, button: MouseButton) -> bool {
+        self.jp & Self::dispatch(button) > 0
+    }
+    pub fn just_released(&self, button: MouseButton) -> bool {
+        self.jr & Self::dispatch(button) > 0
+    }
+}
