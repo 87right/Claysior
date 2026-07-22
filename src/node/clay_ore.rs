@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 
-use crate::grid::{common::BasicNode, component::{LeftClicked, TextureBuff}, system_set::GridFixed};
+use crate::{grid::{common::BasicNode, component::{LeftClicked, TextureBuff}, system_set::GridFixed, util::replace}, node::air::Air};
 
 #[derive(Component)]
-pub struct ClayOre;
+pub struct ClayOre{
+    health: u32
+}
 impl BasicNode for ClayOre {
     fn get_id() -> String {
         "clay_ore".to_string()
@@ -13,7 +15,9 @@ impl BasicNode for ClayOre {
     }
     fn spawn(commands: &mut bevy::ecs::system::Commands, entity: bevy::ecs::entity::Entity) {
         commands.entity(entity).insert((
-            ClayOre,
+            ClayOre{
+                health: 5
+            },
             TextureBuff("textures/tile/clay_ore.png".to_string()),
         ));
     }
@@ -25,8 +29,15 @@ impl BasicNode for ClayOre {
 
 
 fn on_left_clicked(
-    node_q: Query<Entity, (With<LeftClicked>, With<ClayOre>)>,
+    mut commands: Commands,
+    node_q: Query<(&mut ClayOre, Entity), With<LeftClicked>>,
 ) {
-    for entity in node_q {
+    for (mut ore, e) in node_q {
+        ore.health -= 1;
+        if ore.health == 3 {
+            commands.entity(e).insert(TextureBuff("textures/tile/debug_clay_ore.png".to_string()));
+        } else if ore.health == 0 {
+            replace::<Air>(&mut commands, e);
+        }
     }
 }

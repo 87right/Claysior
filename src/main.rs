@@ -4,6 +4,7 @@ mod camera;
 mod common;
 mod grid;
 mod node;
+mod item;
 
 use bevy::prelude::*;
 
@@ -13,5 +14,6 @@ fn main() {
         .add_plugins(crate::camera::plugins::CameraPlugins)
         .add_plugins(crate::grid::plugin::GridPlugin)
         .add_plugins(crate::node::plugin::NodePlugin)
+        .add_plugins(crate::item::plugin::ItemPlugin)
         .run();
 }

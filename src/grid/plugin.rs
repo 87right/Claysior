@@ -5,7 +5,7 @@ use crate::{grid::{
         component::*, resource::{
             Background, GridEntityMap, GridGenSetting, SpawnTable, SyncMouseButtonInput
         }, system_set::*, util::{reload_background, respawn_grid},
-    }, node::air::Air};
+    }};
 
 pub struct GridPlugin;
 impl Plugin for GridPlugin{
