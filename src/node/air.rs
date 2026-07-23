@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{grid::{common::BasicNode, component::{LeftClicked, Placed, TextureBuff}, system_set::GridFixed, util::replace}, node::clay_ore::ClayOre};
+use crate::{grid::{common::BasicNode, component::{LeftClicked, Placed, TextureBuff}, system_set::GridFixed, util::replace}, node::{clay_ore::ClayOre, conveyor::Conveyor}};
 
 #[derive(Component)]
 pub struct Air;
@@ -34,8 +34,13 @@ fn on_placed(
 fn on_right_clicked(
     mut commands: Commands,
     node_q: Query<Entity, (With<LeftClicked>, With<Air>)>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     for entity in node_q {
-        replace::<ClayOre>(&mut commands, entity);
+        if keys.pressed(KeyCode::Digit0) {
+            replace::<ClayOre>(&mut commands, entity);
+        } else if keys.pressed(KeyCode::Digit1) {
+            replace::<Conveyor>(&mut commands, entity);
+        }
     }
 }

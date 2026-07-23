@@ -18,7 +18,7 @@ impl BasicNode for ClayOre {
             ClayOre{
                 health: 5
             },
-            TextureBuff("textures/tile/clay_ore.png".to_string()),
+            TextureBuff("textures/tile/clay_ore_5.png".to_string()),
         ));
     }
     fn register(app: &mut bevy::app::App) {
@@ -34,10 +34,10 @@ fn on_left_clicked(
 ) {
     for (mut ore, e) in node_q {
         ore.health -= 1;
-        if ore.health == 3 {
-            commands.entity(e).insert(TextureBuff("textures/tile/debug_clay_ore.png".to_string()));
-        } else if ore.health == 0 {
+        if ore.health == 0 {
             replace::<Air>(&mut commands, e);
+        } else {
+            commands.entity(e).insert(TextureBuff(format!("textures/tile/clay_ore_{}.png", ore.health).to_string()));
         }
     }
 }
