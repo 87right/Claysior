@@ -4,7 +4,7 @@ use crate::item::component::*;
 
 pub struct ItemPlugin;
 impl Plugin for ItemPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, _app: &mut App) {}
 }
 
 fn item_entity_age_system(mut commands: Commands, item_q: Query<(&mut Age, Entity), With<Item>>) {

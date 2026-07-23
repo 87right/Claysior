@@ -43,7 +43,7 @@ impl Direction {
             Self::Y => Self::NegY,
         }
     }
-    pub fn into_grid_pos(&self) -> GridPos {
+    pub fn into_grid_pos(self) -> GridPos {
         match self {
             Self::NegX => GridPos::NEG_X,
             Self::NegY => GridPos::NEG_Y,

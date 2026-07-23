@@ -125,17 +125,16 @@ fn handle_mouse_click(
     let rc = mouse_buttons.just_released(MouseButton::Right);
     if lc || rc {
         let (camera, global_transform) = camera.into_inner();
-        if let Some(cursor_pos) = window.cursor_position() {
-            if let Ok(cursor_pos) = camera.viewport_to_world_2d(global_transform, cursor_pos)
-                && let grid_pos = GridPos::from_world_pos(cursor_pos)
-                && let Some(entity) = grid_entity_map.get(&grid_pos)
-            {
-                if lc {
-                    commands.entity(entity).insert(LeftClicked);
-                }
-                if rc {
-                    commands.entity(entity).insert(RightClicked);
-                }
+        if let Some(cursor_pos) = window.cursor_position()
+            && let Ok(cursor_pos) = camera.viewport_to_world_2d(global_transform, cursor_pos)
+            && let grid_pos = GridPos::from_world_pos(cursor_pos)
+            && let Some(entity) = grid_entity_map.get(&grid_pos)
+        {
+            if lc {
+                commands.entity(entity).insert(LeftClicked);
+            }
+            if rc {
+                commands.entity(entity).insert(RightClicked);
             }
         }
     }

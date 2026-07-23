@@ -28,7 +28,7 @@ impl GridPos {
     pub fn y(&self) -> i32 {
         self.0.y
     }
-    pub fn to_world_pos(&self) -> Vec2 {
+    pub fn to_world_pos(self) -> Vec2 {
         Vec2 {
             x: self.x() as f32 * CELL_SIZE,
             y: self.y() as f32 * CELL_SIZE,

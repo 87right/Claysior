@@ -31,7 +31,7 @@ pub fn respawn_grid(
                         y as f32 * CELL_SIZE,
                         1. - y as f32 / 256.,
                     ),
-                    cur_pos.clone(),
+                    cur_pos,
                 ))
                 .id();
             if let Some(last_entity) = grid_map.insert(&cur_pos, new_entity) {

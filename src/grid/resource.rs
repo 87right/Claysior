@@ -9,10 +9,10 @@ use std::collections::HashMap;
 pub struct GridEntityMap(pub HashMap<IVec2, Entity>);
 impl GridEntityMap {
     pub fn get(&self, grid_pos: &GridPos) -> Option<Entity> {
-        self.0.get(&grid_pos.0).and_then(|e| Some(*e))
+        self.0.get(&grid_pos.0).copied()
     }
     pub fn insert(&mut self, grid_pos: &GridPos, entity: Entity) -> Option<Entity> {
-        self.0.insert(grid_pos.0.clone(), entity)
+        self.0.insert(grid_pos.0, entity)
     }
 }
 
@@ -84,7 +84,7 @@ impl SyncMouseButtonInput {
         }
     }
     fn read(mut f: impl FnMut(MouseButton) -> bool) -> u8 {
-        let val = if f(MouseButton::Left) { Self::LEFT } else { 0 }
+        (if f(MouseButton::Left) { Self::LEFT } else { 0 }
             | if f(MouseButton::Right) {
                 Self::RIGHT
             } else {
@@ -100,8 +100,7 @@ impl SyncMouseButtonInput {
                 Self::FORWARD
             } else {
                 0
-            };
-        val
+            })
     }
     pub fn write(&mut self, button: &ButtonInput<MouseButton>) {
         self.p |= Self::read(|b| button.pressed(b));

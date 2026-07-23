@@ -1,31 +1,12 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
-pub struct Item {
-    pub item: ItemType,
-    pub size: ItemSize,
-}
+use crate::consumable::common::*;
 
-#[derive(Component)]
-pub enum ItemType {
+#[derive(Component, Clone, Copy, PartialEq, Eq)]
+pub enum Item {
     Clay,
 }
-impl ItemType {
-    fn get_max_size(&self) -> ItemSize {
-        match self {
-            ItemType::Clay => ItemSize(9999),
-        }
-    }
-}
-
-#[derive(Component, Clone, Copy)]
-pub struct ItemSize(pub u32);
-impl std::ops::Add for ItemSize {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0 + rhs.0)
-    }
-}
+impl Consumable for Item {}
 
 #[derive(Component)]
 pub struct Pickupable;
