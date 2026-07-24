@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use crate::{
     grid::{common::*, component::*, resource::*, system_set::*, util::*},
     node::*,
+    consumable::component::*,
+    item::component::Item,
 };
 
 #[derive(Component)]
@@ -30,7 +32,37 @@ impl BasicNode for Conveyor {
         commands.entity(entity).insert((
             Conveyor {
                 from: Direction::NegX,
-                to: Direction::NegX,
+                to: Direction::X,
+            },
+            Inventory::<Item> {
+                content: vec![
+                    MaterialSlot::<Item> {
+                        val: None,
+                        vol: 0
+                    }
+                ],
+                size: 1,
+            },
+            Channel::<Item> {
+                input: vec![
+                    Port::<Item> {
+                        filter: Filter::<Item>::Any,
+                        slot: TargetSlot::Specific(
+                            SlotID(0)
+                        ),
+                        grid: TargetGrid::Specific(GridPos::NEG_X),
+                    }
+                ],
+                output: vec![
+                    Port::<Item> {
+                        filter: Filter::<Item>::Any,
+                        slot: TargetSlot::Specific(
+                            SlotID(0)
+                        ),
+                        grid: TargetGrid::Specific(GridPos::X),
+                    }
+                ],
+                gather: vec![],
             },
             TextureBuff("textures/tile/conveyor_0_0.png".to_string()),
         ));
@@ -76,12 +108,24 @@ fn on_placed(
 
 fn on_left_clicked(
     mut commands: Commands,
-    conveyor_q: Query<(&mut Conveyor, Entity), With<LeftClicked>>,
+    conveyor_q: Query<(&mut Conveyor, &mut Inventory<Item>, Entity), With<LeftClicked>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for (mut c, e) in conveyor_q {
+    for (mut c, mut inv, e) in conveyor_q {
         if keys.pressed(KeyCode::ControlLeft) {
             replace::<air::Air>(&mut commands, e);
+        }
+
+        if keys.pressed(KeyCode::Space) {
+            if let Some(slot) = inv.get_mut(SlotID(0)) {
+                if slot.val.is_some() {
+                    println!("入ってるよ!");
+                } else {
+                    println!("追加したよ!");
+                    slot.val = Some(Item::Clay);
+                    slot.vol = 1;
+                }
+            }
         }
 
         let mut new_dir = Direction::NegX;

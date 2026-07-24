@@ -1,6 +1,12 @@
 use bevy::prelude::*;
 
-use crate::consumable::common::*;
+use crate::{
+    consumable::common::*,
+    grid::{
+        component::*,
+        resource::*,
+    },
+};
 
 #[derive(Component)]
 pub struct Channel<T>
@@ -11,17 +17,78 @@ where
     pub output: Vec<Port<T>>,
     pub gather: Vec<Port<T>>,
 }
+impl<T> Channel<T> 
+where 
+    T: Consumable
+{
+    pub fn insert(&mut self, to_inventory: &mut Inventory<T>, buff: &mut MaterialSlotBuff<T>) -> bool {
+        let mut result = false;
+        for input in self.input.iter_mut() {
+            if input.insert(to_inventory, &mut buff.content) {
+                result = true;
+            }
+        }
+        result
+    }
+}
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct Port<T>
 where
     T: Consumable,
 {
     pub filter: Filter<T>,
     pub slot: TargetSlot,
+    pub grid: TargetGrid,
+}
+impl<T> Port<T> 
+where 
+    T: Consumable
+{
+    pub fn get_first<'a>(&self, inventory: &'a Inventory<T>) -> Option<(SlotID, &'a MaterialSlot<T>)> {
+        for id in self.slot.get_slot_ids(inventory.size) {
+            if let Some(slot) = inventory.get(id) 
+            && let Some(val) = slot.val 
+            && self.filter.check(val) {
+                return Some((id, slot));
+            }
+        }
+        None
+    }
+    pub fn get_buff(&self, inventory: &Inventory<T>) -> Option<MaterialSlotBuff<T>> {
+        if let Some((id, slot)) = self.get_first(inventory) {
+            Some(
+                MaterialSlotBuff::<T> {
+                    content: slot.clone(),
+                    index: id,
+                }
+            )
+        } else {
+            None
+        }
+    }
+    pub fn insert(&self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>) -> bool {
+        let mut inserted = false;
+        for id in self.slot.get_slot_ids(inventory.size) {
+            if let Some(to) = inventory.get_mut(id) 
+            && to.insert(from) {
+                inserted = true;
+            }
+        }
+        inserted
+    }
+    pub fn inserted(&mut self) {
+
+    }
+    pub fn update(&mut self) {
+
+    }
+    pub fn get_target_entity(&self, pos: GridPos, grid: &Res<GridEntityMap>) -> Vec<Entity> {
+        self.grid.entity_vec(pos, grid)
+    }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub enum Filter<T>
 where
     T: Consumable,
@@ -40,7 +107,7 @@ impl<T: Consumable> Filter<T> {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub enum TargetSlot {
     Any,
     Specific(SlotID),
@@ -64,6 +131,25 @@ impl TargetSlot {
     }
 }
 
+#[derive(Component, Clone, Copy)]
+pub enum TargetGrid {
+    Any,
+    Specific(GridPos)
+}
+impl TargetGrid {
+    pub fn entity_vec(&self, pos: GridPos, grid: &Res<GridEntityMap>) -> Vec<Entity> {
+        match self {
+            Self::Any => vec![],
+            Self::Specific(diff) => 
+                if let Some(e) = grid.get(&(pos + *diff)) {
+                    vec![e]
+                } else {
+                    vec![]
+                }
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Inventory<T>
 where
@@ -72,8 +158,31 @@ where
     pub content: Vec<MaterialSlot<T>>,
     pub size: usize,
 }
+impl<T> Inventory<T>
+where
+    T: Consumable
+{
+    pub fn get(&self, id: SlotID) -> Option<&MaterialSlot<T>> {
+        self.content.get(id.0)
+    }
+    pub fn get_mut(&mut self, id: SlotID) -> Option<&mut MaterialSlot<T>> {
+        self.content.get_mut(id.0)
+    }
+    pub fn insert(&mut self, id: SlotID, val: &mut MaterialSlot<T>) -> bool {
+        if let Some(slot) = self.content.get_mut(id.0) {
+            slot.insert(val)
+        } else {
+            false
+        }
+    }
+    pub fn apply_buff(&mut self, buff: MaterialSlotBuff<T>) {
+        if let Some(to) = self.content.get_mut(buff.index.0) {
+            to.copy_from(buff.content);
+        }
+    }
+}
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct MaterialSlot<T>
 where
     T: Consumable,
@@ -111,6 +220,10 @@ where
             return true;
         }
         false
+    }
+    fn copy_from(&mut self, from: Self) {
+        self.val = from.val;
+        self.vol = from.vol;
     }
 }
 
