@@ -67,18 +67,27 @@ fn on_placed(
     for e in placed_q {
         let mut new_from = Direction::NegX;
         let mut new_to = Direction::NegX;
+        let mut from_changed = false;
+        let mut to_changed = false;
         if let Ok((_, _, pos)) = self_q.get(e) {
             for dir in Direction::ALL {
                 if let Some(cur_c) = grid.get(&(*pos + dir.into_grid_pos()))
                     && let Ok((cur_c, _, _)) = self_q.get(cur_c)
                 {
                     if cur_c.from == dir.inverse() {
+                        to_changed = true;
                         new_to = dir;
                     } else if cur_c.to == dir.inverse() {
+                        from_changed = true;
                         new_from = dir;
                     }
                 }
             }
+        }
+        if !from_changed && to_changed{
+            new_from = new_to.inverse();
+        } else if !to_changed {
+            new_to = new_from;
         }
         if let Ok((mut c, mut channel, _)) = self_q.get_mut(e) {
             c.from = new_from;
