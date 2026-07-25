@@ -39,8 +39,7 @@ fn register_grid_update_schedule(app: &mut App) {
         FixedUpdate,
         (
             GridFixed::OnPlaced,
-            GridFixed::IOReserve.after(GridFixed::OnPlaced),
-            GridFixed::IOExecute.after(GridFixed::IOReserve),
+            GridFixed::IOExecute.after(GridFixed::OnPlaced),
             GridFixed::MainUpdate.after(GridFixed::IOExecute),
             GridFixed::OnRemoved.after(GridFixed::MainUpdate),
             GridFixed::Cleanup.after(GridFixed::OnRemoved),

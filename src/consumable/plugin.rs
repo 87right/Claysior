@@ -33,8 +33,9 @@ fn logistics_system<T>(
             continue;
         };
         let tasks = get_input_tasks::<T>(&channel_q, port, e, &grid);
-        for e in tasks {
-            if input::<T>(&mut channel_q, &mut buff, e) {
+        for e2 in tasks {
+            if e != e2 
+            && input::<T>(&mut channel_q, &mut buff, e2, e, &grid) {
                 break;
             }
         }
@@ -72,14 +73,16 @@ fn input<T>(
     channel_q: &mut Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
     buff: &mut MaterialSlotBuff<T>,
     e: Entity,
+    from: Entity,
+    grid: &Res<GridEntityMap>,
 ) -> bool
 where
     T: Consumable,
 {
-    let Ok((mut c, mut i, _, _)) = channel_q.get_mut(e) else {
+    let Ok((mut c, mut i, pos, _)) = channel_q.get_mut(e) else {
         return false;
     };
-    c.insert(&mut *i, buff)
+    c.insert(&mut *i, buff, from, *pos, grid)
 }
 
 fn apply<T>(

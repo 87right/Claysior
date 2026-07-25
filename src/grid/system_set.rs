@@ -4,7 +4,6 @@ use bevy::ecs::schedule::SystemSet;
 pub enum GridFixed {
     OnPlaced,
     ApplyDiff,
-    IOReserve,
     IOExecute,
     MainUpdate,
     OnRemoved,

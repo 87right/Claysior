@@ -32,7 +32,7 @@ impl BasicNode for Conveyor {
         commands.entity(entity).insert((
             Conveyor {
                 from: Direction::NegX,
-                to: Direction::X,
+                to: Direction::NegX,
             },
             Inventory::<Item> {
                 content: vec![MaterialSlot::<Item> { val: None, vol: 0 }],
@@ -47,7 +47,7 @@ impl BasicNode for Conveyor {
                 output: vec![Port::<Item> {
                     filter: Filter::<Item>::Any,
                     slot: TargetSlot::Specific(SlotID(0)),
-                    grid: TargetGrid::Specific(GridPos::X),
+                    grid: TargetGrid::Specific(GridPos::NEG_X),
                 }],
                 gather: vec![],
             },
@@ -58,17 +58,17 @@ impl BasicNode for Conveyor {
 
 fn on_placed(
     mut commands: Commands,
-    mut self_q: Query<(&mut Conveyor, &GridPos)>,
+    mut self_q: Query<(&mut Conveyor, &mut Channel<Item>, &GridPos)>,
     placed_q: Query<Entity, With<Placed>>,
     grid: Res<GridEntityMap>,
 ) {
     for e in placed_q {
         let mut new_from = Direction::NegX;
         let mut new_to = Direction::NegX;
-        if let Ok((_, pos)) = self_q.get(e) {
+        if let Ok((_, _, pos)) = self_q.get(e) {
             for dir in Direction::ALL {
                 if let Some(cur_c) = grid.get(&(*pos + dir.into_grid_pos()))
-                    && let Ok((cur_c, _)) = self_q.get(cur_c)
+                    && let Ok((cur_c, _, _)) = self_q.get(cur_c)
                 {
                     if cur_c.from == dir.inverse() {
                         new_to = dir;
@@ -78,7 +78,7 @@ fn on_placed(
                 }
             }
         }
-        if let Ok((mut c, _)) = self_q.get_mut(e) {
+        if let Ok((mut c, mut channel, _)) = self_q.get_mut(e) {
             c.from = new_from;
             c.to = new_to;
             commands.entity(e).insert(TextureBuff(
@@ -89,16 +89,32 @@ fn on_placed(
                 )
                 .to_string(),
             ));
+            channel.output.get_mut(0).and_then(|port| {
+                port.grid = TargetGrid::Specific(new_to.into_grid_pos());
+                None::<Item>
+            });
+            channel.input.get_mut(0).and_then(|port| {
+                port.grid = TargetGrid::Specific(new_from.into_grid_pos());
+                None::<Item>
+            });
         }
     }
 }
 
 fn on_left_clicked(
     mut commands: Commands,
-    conveyor_q: Query<(&mut Conveyor, &mut Inventory<Item>, Entity), With<LeftClicked>>,
+    conveyor_q: Query<
+        (
+            &mut Conveyor,
+            &mut Inventory<Item>,
+            &mut Channel<Item>,
+            Entity,
+        ),
+        With<LeftClicked>,
+    >,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for (mut c, mut inv, e) in conveyor_q {
+    for (mut c, mut inv, mut channel, e) in conveyor_q {
         if keys.pressed(KeyCode::ControlLeft) {
             replace::<air::Air>(&mut commands, e);
         }
@@ -107,7 +123,7 @@ fn on_left_clicked(
             && let Some(slot) = inv.get_mut(SlotID(0))
         {
             if slot.val.is_some() {
-                println!("入ってるよ!");
+                println!("{}個入ってるよ!", slot.vol);
             } else {
                 println!("追加したよ!");
                 slot.val = Some(Item::Clay);
@@ -127,8 +143,16 @@ fn on_left_clicked(
         }
         if keys.pressed(KeyCode::ShiftLeft) {
             c.to = new_dir;
+            channel.output.get_mut(0).and_then(|x| {
+                x.grid = TargetGrid::Specific(new_dir.into_grid_pos());
+                None::<Item>
+            });
         } else {
             c.from = new_dir;
+            channel.input.get_mut(0).and_then(|x| {
+                x.grid = TargetGrid::Specific(new_dir.into_grid_pos());
+                None::<Item>
+            });
         }
         commands.entity(e).insert(TextureBuff(
             format!(

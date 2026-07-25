@@ -22,10 +22,14 @@ where
         &mut self,
         to_inventory: &mut Inventory<T>,
         buff: &mut MaterialSlotBuff<T>,
+        from: Entity,
+        pos: GridPos,
+        grid: &Res<GridEntityMap>
     ) -> bool {
         let mut result = false;
         for input in self.input.iter_mut() {
-            if input.insert(to_inventory, &mut buff.content) {
+            if input.get_target_entity(pos, grid).contains(&from)
+            && input.insert(to_inventory, &mut buff.content) {
                 result = true;
             }
         }
@@ -197,6 +201,9 @@ where
 {
     fn insert(&mut self, slot: &mut Self) -> bool {
         if let Some(val) = self.val {
+            if self.vol == val.get_max_size() {
+                return false;
+            }
             if let Some(r_val) = slot.val
                 && val == r_val
             {
@@ -215,6 +222,7 @@ where
             }
         } else {
             self.val = slot.val;
+            self.vol = slot.vol;
             slot.val = None;
             slot.vol = 0;
 
