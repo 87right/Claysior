@@ -43,11 +43,13 @@ impl BasicNode for Conveyor {
                     filter: Filter::<Item>::Any,
                     slot: TargetSlot::Specific(SlotID(0)),
                     grid: TargetGrid::Specific(GridPos::NEG_X),
+                    active: true
                 }],
                 output: vec![Port::<Item> {
                     filter: Filter::<Item>::Any,
                     slot: TargetSlot::Specific(SlotID(0)),
                     grid: TargetGrid::Specific(GridPos::NEG_X),
+                    active: false,
                 }],
                 gather: vec![],
             },
@@ -89,14 +91,7 @@ fn on_placed(
                 )
                 .to_string(),
             ));
-            channel.output.get_mut(0).and_then(|port| {
-                port.grid = TargetGrid::Specific(new_to.into_grid_pos());
-                None::<Item>
-            });
-            channel.input.get_mut(0).and_then(|port| {
-                port.grid = TargetGrid::Specific(new_from.into_grid_pos());
-                None::<Item>
-            });
+            update_port(&mut c, &mut channel);
         }
     }
 }
@@ -143,17 +138,10 @@ fn on_left_clicked(
         }
         if keys.pressed(KeyCode::ShiftLeft) {
             c.to = new_dir;
-            channel.output.get_mut(0).and_then(|x| {
-                x.grid = TargetGrid::Specific(new_dir.into_grid_pos());
-                None::<Item>
-            });
         } else {
             c.from = new_dir;
-            channel.input.get_mut(0).and_then(|x| {
-                x.grid = TargetGrid::Specific(new_dir.into_grid_pos());
-                None::<Item>
-            });
         }
+        update_port(&mut c, &mut channel);
         commands.entity(e).insert(TextureBuff(
             format!(
                 "textures/tile/conveyor_{}_{}.png",
@@ -163,4 +151,19 @@ fn on_left_clicked(
             .to_string(),
         ));
     }
+}
+
+fn update_port(
+    conveyor: &mut Conveyor,
+    channel: &mut Channel<Item>,
+) {
+    channel.input.get_mut(0).and_then(|x| {
+        x.grid = TargetGrid::Specific(conveyor.from.into_grid_pos());
+        None::<Item>
+    });
+    channel.output.get_mut(0).and_then(|x| {
+        x.grid = TargetGrid::Specific(conveyor.to.into_grid_pos());
+        x.active = conveyor.from != conveyor.to;
+        None::<Item>
+    });
 }

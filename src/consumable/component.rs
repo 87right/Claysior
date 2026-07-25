@@ -45,6 +45,7 @@ where
     pub filter: Filter<T>,
     pub slot: TargetSlot,
     pub grid: TargetGrid,
+    pub active: bool,
 }
 impl<T> Port<T>
 where
@@ -54,6 +55,7 @@ where
         &self,
         inventory: &'a Inventory<T>,
     ) -> Option<(SlotID, &'a MaterialSlot<T>)> {
+        if !self.active {return None;}
         for id in self.slot.get_slot_ids(inventory.size) {
             if let Some(slot) = inventory.get(id)
                 && let Some(val) = slot.val
@@ -75,6 +77,7 @@ where
         }
     }
     pub fn insert(&self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>) -> bool {
+        if !self.active {return false;}
         let mut inserted = false;
         for id in self.slot.get_slot_ids(inventory.size) {
             if let Some(to) = inventory.get_mut(id)
