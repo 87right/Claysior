@@ -21,6 +21,7 @@ impl BasicNode for Conveyor {
             FixedUpdate,
             (
                 on_placed.in_set(GridFixed::OnPlaced),
+                on_network_changed.in_set(GridFixed::OnPlaced),
                 on_left_clicked.in_set(GridFixed::MainUpdate),
             ),
         );
@@ -57,6 +58,116 @@ impl BasicNode for Conveyor {
         ));
     }
 }
+impl Conveyor {
+    fn has_output(&self) -> bool {
+        self.from != self.to
+    }
+    fn input_connected(
+        &self, 
+        conveyor_q: &Query<(&mut Conveyor, &mut Channel<Item>, &GridPos, Entity)>,
+        pos: GridPos, 
+        grid: &Res<GridEntityMap>,
+    ) -> bool {
+        if let Some(e) = grid.get(&(pos + self.from.into_grid_pos()))
+        && let Ok((conveyor, _, _, _)) = conveyor_q.get(e) {
+            conveyor.to == self.from.inverse()
+        } else {
+            false
+        }
+    }
+    fn output_connected(
+        &self, 
+        conveyor_q: &Query<(&mut Conveyor, &mut Channel<Item>, &GridPos, Entity)>,
+        pos: GridPos, 
+        grid: &Res<GridEntityMap>,
+    ) -> bool {
+        if self.has_output()
+        && let Some(e) = grid.get(&(pos + self.to.into_grid_pos()))
+        && let Ok((conveyor, _, _, _)) = conveyor_q.get(e) {
+            conveyor.from == self.to.inverse()
+        } else {
+            false
+        }
+    }
+}
+
+#[derive(Component)]
+struct NetworkChanged;
+
+fn on_network_changed(
+    mut commands: Commands,
+    mut conveyor_q: Query<(&mut Conveyor, &mut Channel<Item>, &GridPos, Entity)>,
+    network_changed_q: Query<Entity, With<NetworkChanged>>,
+    grid: Res<GridEntityMap>,
+) {
+    for e in network_changed_q {
+        commands.entity(e).remove::<NetworkChanged>();
+
+        let mut new_from;
+        let mut new_to;
+        let mut from_changed = false;
+        let mut to_changed = false;
+        {
+            let Ok((conveyor, _, pos, _)) = conveyor_q.get(e) else {continue;};
+            new_from = conveyor.from; new_to = conveyor.to;
+            if !conveyor.input_connected(&conveyor_q, *pos, &grid) {
+                for dir in Direction::ALL {
+                    let cur_pos = *pos + dir.into_grid_pos();
+                    let Some(cur_e) = grid.get(&cur_pos) else {continue;};
+                    let Ok((cur_c, _, _, _)) = conveyor_q.get(cur_e) else {continue;}; 
+
+                    if !cur_c.has_output()
+                    || cur_c.output_connected(&conveyor_q, cur_pos, &grid){
+                        continue;
+                    }
+                    from_changed = true;
+                    new_from = dir;
+                    commands.entity(cur_e).insert(NetworkChanged);
+                    break;
+                    
+                }
+            } else {
+                from_changed = true;
+            }
+            if !conveyor.output_connected(&conveyor_q, *pos, &grid) {
+                for dir in Direction::ALL {
+                    let cur_pos = *pos + dir.into_grid_pos();
+                    let Some(cur_e) = grid.get(&cur_pos) else {continue;};
+                    let Ok((cur_c, _, _, _)) = conveyor_q.get(cur_e) else {continue;}; 
+
+                    if cur_c.input_connected(&conveyor_q, cur_pos, &grid)
+                    || dir == new_from{
+                        continue;
+                    }
+                    to_changed = true;
+                    new_to = dir;
+                    commands.entity(cur_e).insert(NetworkChanged);
+                    break;
+                }
+            } else {
+                to_changed = true;
+            }
+        }
+        if !from_changed && to_changed{
+            new_from = new_to.inverse();
+        } else if !to_changed {
+            new_to = new_from;
+        }
+        let Ok((mut conveyor, mut channel, _, e)) = conveyor_q.get_mut(e) else {continue;};
+        conveyor.from = new_from; conveyor.to = new_to;
+        
+        commands.entity(e).insert(TextureBuff(
+            format!(
+                "textures/tile/conveyor_{}_{}.png",
+                conveyor.from.get_id(),
+                conveyor.to.get_id()
+            )
+            .to_string(),
+        ));
+
+        update_port(&mut conveyor, &mut channel);
+    }
+}
 
 fn on_placed(
     mut commands: Commands,
@@ -71,9 +182,12 @@ fn on_placed(
         let mut to_changed = false;
         if let Ok((_, _, pos)) = self_q.get(e) {
             for dir in Direction::ALL {
-                if let Some(cur_c) = grid.get(&(*pos + dir.into_grid_pos()))
-                    && let Ok((cur_c, _, _)) = self_q.get(cur_c)
+                let Some(cur_e) = grid.get(&(*pos + dir.into_grid_pos())) else {
+                    continue;
+                };
+                if let Ok((cur_c, _, _)) = self_q.get(cur_e)
                 {
+                    commands.entity(cur_e).insert(NetworkChanged);
                     if cur_c.from == dir.inverse() {
                         to_changed = true;
                         new_to = dir;
