@@ -11,6 +11,7 @@ use crate::{
 pub struct Conveyor {
     from: Direction,
     to: Direction,
+    has_item: Option<Entity>,
 }
 impl BasicNode for Conveyor {
     fn get_id() -> String {
@@ -23,6 +24,7 @@ impl BasicNode for Conveyor {
                 on_placed.in_set(GridFixed::OnPlaced),
                 on_network_changed.in_set(GridFixed::OnPlaced),
                 on_left_clicked.in_set(GridFixed::MainUpdate),
+                on_update.in_set(GridFixed::MainUpdate),
             ),
         );
     }
@@ -34,6 +36,7 @@ impl BasicNode for Conveyor {
             Conveyor {
                 from: Direction::NegX,
                 to: Direction::NegX,
+                has_item: None,
             },
             Inventory::<Item> {
                 content: vec![MaterialSlot::<Item> { val: None, vol: 0 }],
@@ -289,4 +292,24 @@ fn update_port(
         x.active = conveyor.from != conveyor.to;
         None::<Item>
     });
+}
+
+fn on_update(
+    mut commands: Commands,
+    c_q: Query<(&mut Conveyor, &GridPos, &Inventory<Item>)>,
+) {
+    for (mut con, pos, inv) in c_q {
+        if con.has_item.is_some()
+        != inv.get(SlotID(0)).and_then(|x| x.val).is_some() {
+            if let Some(e) = con.has_item {
+                con.has_item = None;
+                commands.entity(e).despawn();
+            } else {
+                con.has_item = Some(commands.spawn((
+                    TextureBuff("textures/item/clay.png".to_string()),
+                    Transform::from_xyz(pos.to_world_pos().x, pos.to_world_pos().y, 2.),
+                )).id());
+            }
+        }
+    }
 }
