@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    consumable::component::*,
-    grid::{common::*, component::*, resource::*, system_set::*, util::*},
-    item::component::Item,
-    node::*,
+    consumable::{common::PortType, component::*}, grid::{common::*, component::*, resource::*, system_set::*, util::*}, item::component::Item, node::*,
 };
 
 #[derive(Component)]
@@ -42,21 +39,36 @@ impl BasicNode for Conveyor {
                 content: vec![MaterialSlot::<Item> { val: None, vol: 0 }],
                 size: 1,
             },
-            Channel::<Item> {
-                input: vec![Port::<Item> {
-                    filter: Filter::<Item>::Any,
-                    slot: TargetSlot::Specific(SlotID(0)),
-                    grid: TargetGrid::Specific(GridPos::NEG_X),
-                    active: true
-                }],
-                output: vec![Port::<Item> {
-                    filter: Filter::<Item>::Any,
-                    slot: TargetSlot::Specific(SlotID(0)),
-                    grid: TargetGrid::Specific(GridPos::NEG_X),
-                    active: false,
-                }],
-                gather: vec![],
-            },
+            Channel::<Item>::default()
+                .add_port(
+                    PortType::Input,
+                    Port::default()
+                        .set_target_grid(
+                            TargetGrid::Specific(Direction::NegX.into_grid_pos())
+                        )
+                )
+                .add_port(
+                    PortType::Output,
+                    Port::default()
+                        .set_target_grid(
+                            TargetGrid::Specific(Direction::NegX.into_grid_pos())
+                        )
+                ),
+            // {
+            //     input: vec![Port::<Item> {
+            //         filter: Filter::<Item>::Any,
+            //         slot: TargetSlot::Specific(SlotID(0)),
+            //         grid: TargetGrid::Specific(GridPos::NEG_X),
+            //         active: true
+            //     }],
+            //     output: vec![Port::<Item> {
+            //         filter: Filter::<Item>::Any,
+            //         slot: TargetSlot::Specific(SlotID(0)),
+            //         grid: TargetGrid::Specific(GridPos::NEG_X),
+            //         active: false,
+            //     }],
+            //     gather: vec![],
+            // },
             TextureBuff("textures/tile/conveyor_0_0.png".to_string()),
         ));
     }

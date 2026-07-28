@@ -35,6 +35,27 @@ where
         }
         result
     }
+    pub fn add_port(mut self, port_type: PortType, port: Port<T>) -> Self {
+        match port_type {
+            PortType::Input => self.input.push(port),
+            PortType::Output => self.output.push(port),
+            PortType::Gather => self.gather.push(port),
+        }
+        self
+    }
+}
+
+impl<T> Default for Channel<T>
+where 
+    T: Consumable,
+{
+    fn default() -> Self {
+        Self {
+            input: vec![],
+            output: vec![],
+            gather: vec![],
+        }
+    }
 }
 
 #[derive(Component, Clone, Copy)]
@@ -88,18 +109,51 @@ where
         }
         inserted
     }
-    pub fn inserted(&mut self) {}
-    pub fn update(&mut self) {}
     pub fn get_target_entity(&self, pos: GridPos, grid: &Res<GridEntityMap>) -> Vec<Entity> {
         self.grid.entity_vec(pos, grid)
     }
+    pub fn set_filter(mut self, filter: Filter<T>) -> Self {
+        self.filter = filter;
+        self
+    }
+    pub fn set_target_slot(mut self, target_slot: TargetSlot) -> Self {
+        self.slot = target_slot;
+        self
+    }
+    pub fn set_target_grid(mut self, target_grid: TargetGrid) -> Self {
+        self.grid = target_grid;
+        self
+    }
+    pub fn activate(mut self) -> Self {
+        self.active = true;
+        self
+    }
+    pub fn deactivate(mut self) -> Self {
+        self.active = false;
+        self
+    }
 }
 
-#[derive(Component, Clone, Copy)]
+impl<T> Default for Port<T>
+where 
+    T: Consumable,
+{
+    fn default() -> Self {
+        Self {
+            filter: Filter::<T>::default(),
+            slot: TargetSlot::default(),
+            grid: TargetGrid::default(),
+            active: true,
+        }
+    }
+}
+
+#[derive(Component, Clone, Copy, Default)]
 pub enum Filter<T>
 where
     T: Consumable,
 {
+    #[default]
     Any,
     Specific { val: T },
     Custom(fn(val: T) -> bool),
@@ -114,8 +168,9 @@ impl<T: Consumable> Filter<T> {
     }
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Default)]
 pub enum TargetSlot {
+    #[default]
     Any,
     Specific(SlotID),
     Range { from: SlotID, to: SlotID },
@@ -138,8 +193,9 @@ impl TargetSlot {
     }
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Default)]
 pub enum TargetGrid {
+    #[default]
     Any,
     Specific(GridPos),
 }

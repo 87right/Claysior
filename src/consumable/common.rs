@@ -15,3 +15,9 @@ where
     pub content: MaterialSlot<T>,
     pub index: SlotID,
 }
+
+pub enum PortType {
+    Input,
+    Output,
+    Gather,
+}
