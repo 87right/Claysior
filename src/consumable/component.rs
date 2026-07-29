@@ -22,13 +22,14 @@ where
         &mut self,
         to_inventory: &mut Inventory<T>,
         buff: &mut MaterialSlotBuff<T>,
-        from: Entity,
-        pos: GridPos,
-        grid: &Res<GridEntityMap>
+        _from_entity: Entity,
+        from_pos: GridPos,
+        to_pos: GridPos,
+        _grid: &Res<GridEntityMap>
     ) -> bool {
         let mut result = false;
         for input in self.input.iter_mut() {
-            if input.get_target_entity(pos, grid).contains(&from)
+            if input.grid.check(from_pos, to_pos)
             && input.insert(to_inventory, &mut buff.content) {
                 result = true;
             }
@@ -210,6 +211,12 @@ impl TargetGrid {
                     vec![]
                 }
             }
+        }
+    }
+    pub fn check(&self, from_pos: GridPos, to_pos: GridPos) -> bool {
+        match self {
+            Self::Any => true,
+            Self::Specific(pos) => from_pos == to_pos + *pos,
         }
     }
 }

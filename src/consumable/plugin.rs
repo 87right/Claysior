@@ -22,20 +22,20 @@ fn logistics_system<T>(
 ) where
     T: Consumable,
 {
-    let mut tasks: Vec<(Port<T>, Entity)> = vec![];
-    for (channel, _, _, e) in channel_q.as_readonly() {
+    let mut tasks: Vec<(Port<T>, Entity, GridPos)> = vec![];
+    for (channel, _, pos, e) in channel_q.as_readonly() {
         for port in &channel.output {
-            tasks.push((*port, e));
+            tasks.push((*port, e, *pos));
         }
     }
-    for (port, e) in tasks {
+    for (port, e, from_pos) in tasks {
         let Some(mut buff) = get_buff::<T>(&channel_q, port, e) else {
             continue;
         };
         let tasks = get_input_tasks::<T>(&channel_q, port, e, &grid);
         for e2 in tasks {
             if e != e2 
-            && input::<T>(&mut channel_q, &mut buff, e2, e, &grid) {
+            && input::<T>(&mut channel_q, &mut buff, e2, e, from_pos, &grid) {
                 break;
             }
         }
@@ -73,7 +73,8 @@ fn input<T>(
     channel_q: &mut Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
     buff: &mut MaterialSlotBuff<T>,
     e: Entity,
-    from: Entity,
+    from_entity: Entity,
+    from_pos: GridPos,
     grid: &Res<GridEntityMap>,
 ) -> bool
 where
@@ -82,7 +83,7 @@ where
     let Ok((mut c, mut i, pos, _)) = channel_q.get_mut(e) else {
         return false;
     };
-    c.insert(&mut *i, buff, from, *pos, grid)
+    c.insert(&mut *i, buff, from_entity, from_pos, *pos, grid)
 }
 
 fn apply<T>(
