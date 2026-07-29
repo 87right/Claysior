@@ -11,6 +11,7 @@ impl Plugin for NodePlugin {
         register::<air::Air>(app);
         register::<clay_ore::ClayOre>(app);
         register::<conveyor::Conveyor>(app);
+        register::<furnace::ClayFurnace>(app);
     }
 }
 
