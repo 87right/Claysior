@@ -54,21 +54,6 @@ impl BasicNode for Conveyor {
                             TargetGrid::Specific(Direction::NegX.into_grid_pos())
                         )
                 ),
-            // {
-            //     input: vec![Port::<Item> {
-            //         filter: Filter::<Item>::Any,
-            //         slot: TargetSlot::Specific(SlotID(0)),
-            //         grid: TargetGrid::Specific(GridPos::NEG_X),
-            //         active: true
-            //     }],
-            //     output: vec![Port::<Item> {
-            //         filter: Filter::<Item>::Any,
-            //         slot: TargetSlot::Specific(SlotID(0)),
-            //         grid: TargetGrid::Specific(GridPos::NEG_X),
-            //         active: false,
-            //     }],
-            //     gather: vec![],
-            // },
             TextureBuff("textures/tile/conveyor_0_0.png".to_string()),
         ));
     }

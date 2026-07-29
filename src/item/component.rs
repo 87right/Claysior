@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::consumable::common::*;
 
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Item {
     Clay,
 }

@@ -214,7 +214,7 @@ impl TargetGrid {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Inventory<T>
 where
     T: Consumable,
@@ -257,7 +257,7 @@ where
     }
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub struct MaterialSlot<T>
 where
     T: Consumable,
@@ -269,7 +269,7 @@ impl<T> MaterialSlot<T>
 where
     T: Consumable,
 {
-    fn insert(&mut self, slot: &mut Self) -> bool {
+    pub fn insert(&mut self, slot: &mut Self) -> bool {
         if let Some(val) = self.val {
             if self.vol == val.get_max_size() {
                 return false;
