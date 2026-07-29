@@ -6,6 +6,7 @@ mod consumable;
 mod grid;
 mod item;
 mod node;
+mod recipe;
 
 use bevy::prelude::*;
 

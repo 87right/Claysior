@@ -13,7 +13,8 @@ use crate::{
     },
     item::{
         component::*,
-    }
+    },
+    recipe::prelude::*,
 };
 
 const INPUT: SlotID = SlotID(0);
@@ -34,7 +35,7 @@ impl BasicNode for ClayFurnace {
             on_clicked.in_set(GridFixed::MainUpdate),
             check_recipe.in_set(GridFixed::MainUpdate),
         ));
-        app.insert_resource(FurnaceRecipe::default());
+        app.insert_resource(Recipe::<FurnaceInput, FurnaceOutput>::new());
     }
     fn remove(commands: &mut EntityCommands) {
         commands
@@ -62,31 +63,30 @@ impl BasicNode for ClayFurnace {
     }
 }
 
-#[derive(Resource, Default)]
-struct FurnaceRecipe(std::collections::HashMap<RecipeInputBuff, RecipeOutput>);
-
 #[derive(Hash, PartialEq, Eq)]
-struct RecipeInputBuff(Item);
-struct RecipeOutput(Item, usize);
+struct FurnaceInput(Item);
+impl RecipeInput for FurnaceInput {}
+struct FurnaceOutput(Item, usize);
+impl RecipeOutput for FurnaceOutput {}
 
 fn register_recipe(
-    mut recipe: ResMut<FurnaceRecipe>
+    mut recipe: ResMut<Recipe<FurnaceInput, FurnaceOutput>>
 ) {
-    let input = RecipeInputBuff(Item::Clay);
-    let output = RecipeOutput(Item::Clay, 1);
-    recipe.0.insert(input, output);
+    let input = FurnaceInput(Item::Clay);
+    let output = FurnaceOutput(Item::Clay, 1);
+    recipe.insert(input, output);
 }
 
 fn check_recipe(
     mut commands: Commands,
     furnace_q: Query<(&mut ClayFurnace, &mut Inventory<Item>, Entity)>,
-    recipe: Res<FurnaceRecipe>,
+    recipe: Res<Recipe<FurnaceInput, FurnaceOutput>>,
     time: Res<Time>,
 ) {
     for (mut furnace, mut inventory, e) in furnace_q {
         let item;
         if let Some(stick) = inventory.get(SlotID(0)).and_then(|x| x.val)
-        && let Some(out) = recipe.0.get(&RecipeInputBuff(stick)) {
+        && let Some(out) = recipe.get(&FurnaceInput(stick)) {
             if !furnace.running {
                 furnace.running = true;
                 commands.entity(e).insert(TextureBuff("textures/tile/clay_furnace_1.png".to_string()));
