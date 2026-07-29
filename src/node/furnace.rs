@@ -1,10 +1,19 @@
 use bevy::prelude::*;
 
-use crate::grid::{
-    common::*,
-    component::*,
-    util::*,
-    system_set::*,
+use crate::{
+    grid::{
+        common::*,
+        component::*,
+        util::*,
+        system_set::*,
+    },
+    consumable::{
+        component::*,
+        common::*,
+    },
+    item::{
+        component::*,
+    }
 };
 
 #[derive(Component)]
@@ -23,6 +32,11 @@ impl BasicNode for ClayFurnace {
         commands.entity(entity).insert((
             ClayFurnace,
             TextureBuff("textures/tile/clay_furnace_0.png".to_string()),
+            Inventory::<Item>::new(2),
+            Channel::<Item>::default().add_port(
+                PortType::Input,
+                Port::<Item>::default()
+            ),
         ));
     }
 }
