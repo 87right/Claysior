@@ -37,7 +37,10 @@ impl BasicNode for ClayFurnace {
         app.insert_resource(FurnaceRecipe::default());
     }
     fn remove(commands: &mut EntityCommands) {
-        commands.remove::<ClayFurnace>();
+        commands
+            .remove::<ClayFurnace>()
+            .remove::<Inventory<Item>>()
+            .remove::<Channel<Item>>();
     }
     fn spawn(commands: &mut Commands, entity: Entity) {
         commands.entity(entity).insert((

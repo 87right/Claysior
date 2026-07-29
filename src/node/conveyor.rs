@@ -26,7 +26,10 @@ impl BasicNode for Conveyor {
         );
     }
     fn remove(commands: &mut EntityCommands) {
-        commands.remove::<Conveyor>();
+        commands
+            .remove::<Conveyor>()
+            .remove::<Inventory<Item>>()
+            .remove::<Channel<Item>>();
     }
     fn spawn(commands: &mut Commands, entity: Entity) {
         commands.entity(entity).insert((

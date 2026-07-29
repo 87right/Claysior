@@ -6,7 +6,7 @@ use crate::{
         component::{LeftClicked, Placed, TextureBuff},
         system_set::GridFixed,
         util::replace,
-    }, node::{clay_ore::ClayOre, conveyor::Conveyor, furnace::ClayFurnace},
+    }, node::{clay_ore::ClayOre, clay_table::ClayTable, conveyor::Conveyor, furnace::ClayFurnace},
 };
 
 #[derive(Component)]
@@ -46,6 +46,8 @@ fn on_right_clicked(
             replace::<Conveyor>(&mut commands, entity);
         } else if keys.pressed(KeyCode::Digit2) {
             replace::<ClayFurnace>(&mut commands, entity);
+        } else if keys.pressed(KeyCode::Digit3) {
+            replace::<ClayTable>(&mut commands, entity);
         }
     }
 }

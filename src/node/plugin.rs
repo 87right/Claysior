@@ -12,6 +12,7 @@ impl Plugin for NodePlugin {
         register::<clay_ore::ClayOre>(app);
         register::<conveyor::Conveyor>(app);
         register::<furnace::ClayFurnace>(app);
+        register::<clay_table::ClayTable>(app);
     }
 }
 
