@@ -245,6 +245,17 @@ where
         }
     }
 }
+impl<T> Inventory<T> 
+where 
+    T: Consumable
+{
+    fn new(size: usize) -> Self {
+        Self {
+            content: vec![MaterialSlot::<T>{val: None::<T>, vol: 0}; size],
+            size: size,
+        }
+    }
+}
 
 #[derive(Component, Clone, Copy)]
 pub struct MaterialSlot<T>
