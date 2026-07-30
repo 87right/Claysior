@@ -38,10 +38,7 @@ impl BasicNode for Conveyor {
                 to: Direction::NegX,
                 has_item: None,
             },
-            Inventory::<Item> {
-                content: vec![MaterialSlot::<Item> { val: None, vol: 0 }],
-                size: 1,
-            },
+            Inventory::<Item>::new(1),
             Channel::<Item>::default()
                 .add_port(
                     PortType::Input,
@@ -55,6 +52,8 @@ impl BasicNode for Conveyor {
                     Port::default()
                         .set_target_grid(
                             TargetGrid::Specific(Direction::NegX.into_grid_pos())
+                        ).set_mode(
+                            PortMode::with_cool_down(10)
                         )
                 ),
             TextureBuff("textures/tile/conveyor_0_0.png".to_string()),
@@ -243,10 +242,7 @@ fn on_left_clicked(
         if keys.pressed(KeyCode::Space)
             && let Some(slot) = inv.get_mut(SlotID(0))
         {
-            if slot.val.is_some() {
-                println!("{}個入ってるよ!", slot.vol);
-            } else {
-                println!("追加したよ!");
+            if slot.val.is_none() {
                 slot.val = Some(Item::Clay);
                 slot.vol = 1;
             }

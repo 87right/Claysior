@@ -11,7 +11,10 @@ impl Plugin for ConsumablePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            (logistics_system::<Item>).in_set(GridFixed::IOExecute),
+            (
+                (logistics_system::<Item>).in_set(GridFixed::IOExecute),
+                (channel_update::<Item>).in_set(GridFixed::ApplyDiff),
+            ),
         );
     }
 }
@@ -22,13 +25,13 @@ fn logistics_system<T>(
 ) where
     T: Consumable,
 {
-    let mut tasks: Vec<(Port<T>, Entity, GridPos)> = vec![];
+    let mut tasks: Vec<(Port<T>, Entity, GridPos, usize)> = vec![];
     for (channel, _, pos, e) in channel_q.as_readonly() {
-        for port in &channel.output {
-            tasks.push((*port, e, *pos));
+        for (index, port) in channel.output.iter().enumerate() {
+            tasks.push((*port, e, *pos, index));
         }
     }
-    for (port, e, from_pos) in tasks {
+    for (port, e, from_pos, index) in tasks {
         let Some(mut buff) = get_buff::<T>(&channel_q, port, e) else {
             continue;
         };
@@ -39,7 +42,7 @@ fn logistics_system<T>(
                 break;
             }
         }
-        apply(&mut channel_q, e, buff);
+        apply(&mut channel_q, e, buff, index);
     }
 }
 
@@ -90,11 +93,31 @@ fn apply<T>(
     channel_q: &mut Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
     e: Entity,
     buff: MaterialSlotBuff<T>,
+    index: usize,
 ) where
     T: Consumable,
 {
-    let Ok((_, mut inv, _, _)) = channel_q.get_mut(e) else {
+    let Ok((mut channel, mut inv, _, _)) = channel_q.get_mut(e) else {
         return;
     };
+    channel.inserted(index);
     inv.apply_buff(buff);
+}
+
+
+fn channel_update<T> (
+    channel_q: Query<(&mut Channel<T>, &Inventory<T>)>
+) where 
+    T: Consumable,
+{
+    for (mut channel, inventory) in channel_q {
+        for port in &mut channel.input {
+            port.mode.update();
+        }
+        for port in &mut channel.output {
+            if port.get_first(inventory).is_some() {
+                port.mode.update();
+            }
+        }
+    }
 }

@@ -44,6 +44,12 @@ where
         }
         self
     }
+    pub fn inserted(&mut self, index: usize) {
+        self.output.get_mut(index).and_then(|port| {
+            port.mode.reset();
+            None::<&mut Port<T>>
+        });
+    }
 }
 
 impl<T> Default for Channel<T>
@@ -68,6 +74,7 @@ where
     pub slot: TargetSlot,
     pub grid: TargetGrid,
     pub active: bool,
+    pub mode: PortMode,
 }
 impl<T> Port<T>
 where
@@ -89,7 +96,8 @@ where
         None
     }
     pub fn get_buff(&self, inventory: &Inventory<T>) -> Option<MaterialSlotBuff<T>> {
-        if let Some((id, slot)) = self.get_first(inventory) {
+        if self.mode.is_valid()
+        && let Some((id, slot)) = self.get_first(inventory) {
             Some(MaterialSlotBuff::<T> {
                 content: *slot,
                 index: id,
@@ -98,14 +106,15 @@ where
             None
         }
     }
-    pub fn insert(&self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>) -> bool {
-        if !self.active {return false;}
+    pub fn insert(&mut self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>) -> bool {
+        if !self.active || !self.mode.is_valid() {return false;}
         let mut inserted = false;
         for id in self.slot.get_slot_ids(inventory.size) {
             if let Some(to) = inventory.get_mut(id)
                 && to.insert(from)
             {
                 inserted = true;
+                self.mode.reset();
             }
         }
         inserted
@@ -133,6 +142,10 @@ where
         self.active = false;
         self
     }
+    pub fn set_mode(mut self, mode: PortMode) -> Self {
+        self.mode = mode;
+        self
+    }
 }
 
 impl<T> Default for Port<T>
@@ -144,7 +157,44 @@ where
             filter: Filter::<T>::default(),
             slot: TargetSlot::default(),
             grid: TargetGrid::default(),
+            mode: PortMode::default(),
             active: true,
+        }
+    }
+}
+
+#[derive(Component, Clone, Copy, Default)]
+pub enum PortMode {
+    #[default]
+    Always,
+    WithCD(u32, u32),
+}
+impl PortMode {
+    pub fn with_cool_down(ticks: u32) -> Self {
+        Self::WithCD(ticks, 0)
+    }
+    pub fn is_valid(&self) -> bool {
+        match self {
+            Self::Always => true,
+            Self::WithCD(val, pro) => val <= pro,
+        }
+    }
+    pub fn update(&mut self) {
+        match self {
+            Self::WithCD(val, pro) => {
+                if pro < val {
+                    *pro += 1;
+                }
+            },
+            _ => {}
+        }
+    }
+    fn reset(&mut self) {
+        match self {
+            Self::WithCD(_, pro) => {
+                *pro = 0;
+            },
+            _ => {}
         }
     }
 }
