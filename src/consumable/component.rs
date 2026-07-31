@@ -48,11 +48,20 @@ where
         }
         self
     }
-    pub fn inserted(&mut self, index: usize) {
-        self.output.get_mut(index).and_then(|port| {
+    pub fn inserted(&mut self, port_type: PortType, index: usize) {
+        self.get_port(port_type, index).and_then(|port| {
             port.mode.reset();
             None::<&mut Port<T>>
         });
+    }
+    pub fn get_port(&mut self, port_type: PortType, index: usize) -> Option<&mut Port<T>> {
+        match port_type {
+            PortType::Input => &mut self.input,
+            PortType::Output => &mut self.output,
+            PortType::Open => &mut self.open,
+            PortType::Pull => &mut self.pull,
+            PortType::Gather => &mut self.gather,
+        }.get_mut(index)
     }
 }
 

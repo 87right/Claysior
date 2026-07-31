@@ -5,3 +5,4 @@ pub mod clay_ore;
 pub mod conveyor;
 pub mod furnace;
 pub mod clay_table;
+pub mod clay_unloader;

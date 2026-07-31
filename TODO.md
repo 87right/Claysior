@@ -25,3 +25,5 @@
 - [ ] TextureBuff を Atlas に対応させる
 - [x] Channel に搬入アプローチ型の PortType::{Open, Pull} を作成
 - [ ] Channel の gather port の具体処理を実装
+- [ ] PortType::Pull により Filter 付き搬入を行うと適切なものが取れないバグの修正
+- [x] Item Unloader の追加

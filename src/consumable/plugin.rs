@@ -68,7 +68,7 @@ fn logistics_system<T>(
                 && let Some(pull_port) = channel.pull.get_mut(index)
                 && pull_port.insert(&mut inventory, &mut buff.content) {
                     open_pulled = Some((buff.clone(), *open_entity));
-                    channel.inserted(index);
+                    channel.inserted(PortType::Pull, index);
                 }
             }
             if let Some((buff, open_entity)) = open_pulled 
@@ -134,7 +134,7 @@ fn apply<T>(
     let Ok((mut channel, mut inv, _, _)) = channel_q.get_mut(e) else {
         return;
     };
-    channel.inserted(index);
+    channel.inserted(PortType::Output, index);
     inv.apply_buff(buff);
 }
 
@@ -152,6 +152,12 @@ fn channel_update<T> (
             if port.get_first(inventory).is_some() {
                 port.mode.update();
             }
+        }
+        for port in &mut channel.pull {
+            port.mode.update();
+        }
+        for port in &mut channel.open {
+            port.mode.update();
         }
     }
 }
