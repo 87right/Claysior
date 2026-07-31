@@ -12,6 +12,8 @@ where
 {
     pub input: Vec<Port<T>>,
     pub output: Vec<Port<T>>,
+    pub open: Vec<Port<T>>,
+    pub pull: Vec<Port<T>>,
     pub gather: Vec<Port<T>>,
 }
 impl<T> Channel<T>
@@ -40,6 +42,8 @@ where
         match port_type {
             PortType::Input => self.input.push(port),
             PortType::Output => self.output.push(port),
+            PortType::Open => self.open.push(port),
+            PortType::Pull => self.pull.push(port),
             PortType::Gather => self.gather.push(port),
         }
         self
@@ -60,6 +64,8 @@ where
         Self {
             input: vec![],
             output: vec![],
+            open: vec![],
+            pull: vec![],
             gather: vec![],
         }
     }

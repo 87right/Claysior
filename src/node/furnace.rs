@@ -46,7 +46,7 @@ impl BasicNode for ClayFurnace {
     fn spawn(commands: &mut Commands, entity: Entity) {
         commands.entity(entity).insert((
             ClayFurnace {
-                timer: Timer::from_seconds(10., TimerMode::Once),
+                timer: Timer::from_seconds(3., TimerMode::Once),
                 running: false,
             },
             TextureBuff("textures/tile/clay_furnace_0.png".to_string()),
@@ -57,6 +57,11 @@ impl BasicNode for ClayFurnace {
                     TargetGrid::Any
                 ).set_target_slot(
                     TargetSlot::Specific(INPUT)
+                )
+            ).add_port(
+                PortType::Open, 
+                Port::default().set_target_slot(
+                    TargetSlot::Specific(OUTPUT)
                 )
             )
         ));

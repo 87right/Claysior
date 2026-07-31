@@ -8,6 +8,7 @@ pub trait Consumable: Component + Clone + Copy + PartialEq + Eq {
     }
 }
 
+#[derive(Clone)]
 pub struct MaterialSlotBuff<T>
 where
     T: Consumable,
@@ -19,5 +20,7 @@ where
 pub enum PortType {
     Input,
     Output,
+    Open,
+    Pull,
     Gather,
 }

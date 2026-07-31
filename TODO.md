@@ -18,6 +18,10 @@
 - [ ] PortMode::Always に、動作速度の上限を追加
 - [ ] GUI に種類を持たせる（ポップアップ、フルスクリーンインベントリ、HUD）
 - [x] カメラ操作も入力のレイヤに追加
-- [ ] ウィンドウサイズ変更時のテキスト再配置をなんとかする
+- [ ] ウィンドウサイズ変更時のGUI再配置をなんとかする
 - [ ] アイテム分配用の機械を追加
 - [x] MaterialSlot に max volume を追加
+- [ ] Channel に、代理 Inventory を追加（マルチブロック施設のため）
+- [ ] TextureBuff を Atlas に対応させる
+- [x] Channel に搬入アプローチ型の PortType::{Open, Pull} を作成
+- [ ] Channel の gather port の具体処理を実装
