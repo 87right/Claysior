@@ -21,6 +21,7 @@ fn register_system_set(app: &mut App) {
         InputLayer::First,
         InputLayer::UI.after(InputLayer::First),
         InputLayer::Grid.after(InputLayer::UI),
+        InputLayer::Camera.after(InputLayer::Grid),
         InputLayer::Last.after(InputLayer::Grid),
     ));
 }

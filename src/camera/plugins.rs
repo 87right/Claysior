@@ -1,4 +1,5 @@
-use crate::camera::components::*;
+use crate::input::system_set::InputLayer;
+use crate::{camera::components::*, input::resource::LayeredButtonInput};
 use crate::common::constant::*;
 use bevy::{input::mouse::*, prelude::*};
 
@@ -20,7 +21,7 @@ fn add_systems_startup(app: &mut App) {
 }
 
 fn add_systems_update(app: &mut App) {
-    app.add_systems(Update, (camera_movement_system, camera_zoom_system));
+app.add_systems(Update, (camera_movement_system, camera_zoom_system).in_set(InputLayer::Camera));
 }
 
 fn setup_camera(mut commands: Commands) {
@@ -38,7 +39,7 @@ fn setup_camera(mut commands: Commands) {
 fn camera_movement_system(
     mut camera_drag_data: ResMut<CameraDragData>,
     camera_query: Single<(&mut Transform, &Projection), With<Camera>>,
-    buttons: Res<ButtonInput<MouseButton>>,
+    buttons: Res<LayeredButtonInput<MouseButton>>,
     window: Single<&Window>,
 ) {
     let (mut transform, projection) = camera_query.into_inner();
@@ -67,8 +68,10 @@ fn camera_movement_system(
 
 fn camera_zoom_system(
     mut msr_scroll: MessageReader<MouseWheel>,
+    mouse: Res<LayeredButtonInput<MouseButton>>,
     projection_query: Single<&mut Projection, With<Camera>>,
 ) {
+    if mouse.is_consumed() {return;}
     let mut projection = projection_query.into_inner();
     if let Projection::Orthographic(ref mut orthographic) = *projection {
         for ms in msr_scroll.read() {

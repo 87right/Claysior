@@ -123,6 +123,6 @@ fn handle_mouse_click(
                 commands.entity(entity).insert(RightClicked);
             }
         }
+        mouse_buttons.consume();
     }
-    mouse_buttons.consume();
 }

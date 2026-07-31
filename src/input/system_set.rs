@@ -5,5 +5,6 @@ pub enum InputLayer {
     First,
     UI,
     Grid,
+    Camera,
     Last,
 }
