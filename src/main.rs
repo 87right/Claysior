@@ -7,6 +7,8 @@ mod grid;
 mod item;
 mod node;
 mod recipe;
+mod input;
+mod gui;
 
 use bevy::prelude::*;
 
@@ -18,5 +20,7 @@ fn main() {
         .add_plugins(crate::node::plugin::NodePlugin)
         .add_plugins(crate::item::plugin::ItemPlugin)
         .add_plugins(crate::consumable::plugin::ConsumablePlugin)
+        .add_plugins(crate::input::plugin::InputPlugin)
+        .add_plugins(crate::gui::plugin::UIPlugin)
         .run();
 }

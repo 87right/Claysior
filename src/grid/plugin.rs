@@ -1,9 +1,9 @@
-use crate::grid::{
+use crate::{grid::{
     component::*,
     resource::{Background, GridEntityMap, GridGenSetting, SpawnTable, SyncMouseButtonInput},
     system_set::*,
     util::{reload_background, respawn_grid},
-};
+}, input::{resource::LayeredButtonInput, system_set::InputLayer}};
 use bevy::prelude::*;
 
 pub struct GridPlugin;
@@ -15,15 +15,13 @@ impl Plugin for GridPlugin {
         app.add_systems(
             Update,
             (
-                recieve_update_input,
-                handle_mouse_click,
+                handle_mouse_click.in_set(InputLayer::Grid),
                 consume_texture_buff,
             ),
         );
         app.add_systems(
             FixedUpdate,
             (
-                clear_mid_fixed_input,
                 clear_message_component,
                 consume_place_buff,
             )
@@ -102,20 +100,9 @@ fn consume_texture_buff(
     }
 }
 
-fn recieve_update_input(
-    mut sync_mouse_button: ResMut<SyncMouseButtonInput>,
-    mouse_button: Res<ButtonInput<MouseButton>>,
-) {
-    sync_mouse_button.write(&mouse_button);
-}
-
-fn clear_mid_fixed_input(mut sync_mouse_button: ResMut<SyncMouseButtonInput>) {
-    sync_mouse_button.clear();
-}
-
 fn handle_mouse_click(
     mut commands: Commands,
-    mouse_buttons: Res<ButtonInput<MouseButton>>,
+    mut mouse_buttons: ResMut<LayeredButtonInput<MouseButton>>,
     grid_entity_map: Res<GridEntityMap>,
     window: Single<&Window>,
     camera: Single<(&Camera, &GlobalTransform)>,
@@ -137,4 +124,5 @@ fn handle_mouse_click(
             }
         }
     }
+    mouse_buttons.consume();
 }
