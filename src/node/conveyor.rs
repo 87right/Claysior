@@ -38,7 +38,11 @@ impl BasicNode for Conveyor {
                 to: Direction::NegX,
                 has_item: None,
             },
-            Inventory::<Item>::new(1),
+            Inventory::<Item>::new(1)
+                .configure_slot(SlotID(0), 
+                |slot| {
+                    slot.set_max_volume(1);
+                }),
             Channel::<Item>::default()
                 .add_port(
                     PortType::Input,

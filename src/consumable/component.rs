@@ -289,6 +289,13 @@ where
     pub fn get_mut(&mut self, id: SlotID) -> Option<&mut MaterialSlot<T>> {
         self.content.get_mut(id.0)
     }
+    pub fn configure_slot(mut self, id: SlotID, f: fn(slot: &mut MaterialSlot<T>)) -> Self {
+        self.get_mut(id).and_then(|slot| {
+            f(slot);
+            None::<&mut MaterialSlot<T>>
+        });
+        self
+    }
     pub fn insert(&mut self, id: SlotID, val: &mut MaterialSlot<T>) -> bool {
         if let Some(slot) = self.content.get_mut(id.0) {
             slot.insert(val)
@@ -301,14 +308,9 @@ where
             to.copy_from(buff.content);
         }
     }
-}
-impl<T> Inventory<T> 
-where 
-    T: Consumable
-{
     pub fn new(size: usize) -> Self {
         Self {
-            content: vec![MaterialSlot::<T>{val: None::<T>, vol: 0}; size],
+            content: vec![MaterialSlot::<T>::new(); size],
             size: size,
         }
     }
@@ -321,11 +323,41 @@ where
 {
     pub val: Option<T>,
     pub vol: u64,
+    pub max: u64,
 }
 impl<T> MaterialSlot<T>
 where
     T: Consumable,
 {
+    pub fn new() -> Self {
+        Self {
+            val: None,
+            vol: 0,
+            max: u64::MAX,
+        }
+    }
+    pub fn configure_value(mut self, value: Option<T>) -> Self{
+        self.val = value;
+        self
+    }
+    pub fn configure_volume(mut self, volume: u64) -> Self{
+        self.vol = volume;
+        self
+    }
+    pub fn configure_max_volume(mut self, volume: u64) -> Self{
+        self.max = volume;
+        self
+    }
+    pub fn set_value(&mut self, value: Option<T>) {
+        self.val = value;
+    }
+    pub fn set_volume(&mut self, volume: u64) {
+        self.vol = volume;
+    }
+    pub fn set_max_volume(&mut self, volume: u64) {
+        self.max = volume;
+    }
+
     pub fn insert(&mut self, slot: &mut Self) -> bool {
         if let Some(val) = self.val {
             if self.vol == val.get_max_size() {
@@ -334,9 +366,18 @@ where
             if let Some(r_val) = slot.val
                 && val == r_val
             {
-                if val.get_max_size() - self.vol < slot.vol {
-                    slot.vol -= val.get_max_size() - self.vol;
-                    self.vol = val.get_max_size();
+                let item_cap = val.get_max_size() - self.vol < slot.vol;
+                let slot_cap = self.max - self.vol < slot.vol;
+                if item_cap || slot_cap {
+                    let mut take_item_size = self.max;
+                    if self.vol + take_item_size > val.get_max_size() {
+                        take_item_size = val.get_max_size() - self.vol;
+                    }
+                    if self.vol + take_item_size > self.max {
+                        take_item_size = self.max - self.vol;
+                    }
+                    slot.vol -= take_item_size;
+                    self.vol += take_item_size;
 
                     return true;
                 } else {
