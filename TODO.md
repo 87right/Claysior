@@ -27,3 +27,5 @@
 - [ ] Channel の gather port の具体処理を実装
 - [ ] PortType::Pull により Filter 付き搬入を行うと適切なものが取れないバグの修正
 - [x] Item Unloader の追加
+- [x] 粘土を無限に生成する Clay Generator, 入ったアイテムを虚空に葬る Trash Can の実装
+- [x] Slot への insert 時、u64 に対して 0 を下回る可能性のある計算を変更

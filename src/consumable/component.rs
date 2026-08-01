@@ -381,14 +381,14 @@ where
             if let Some(r_val) = slot.val
                 && val == r_val
             {
-                let item_cap = val.get_max_size() - self.vol < slot.vol;
-                let slot_cap = self.max - self.vol < slot.vol;
+                let item_cap = val.get_max_size() < slot.vol + self.vol;
+                let slot_cap = self.max < slot.vol + self.vol;
                 if item_cap || slot_cap {
-                    let mut take_item_size = self.max;
-                    if self.vol + take_item_size > val.get_max_size() {
+                    let mut take_item_size = slot.vol;
+                    if self.vol + take_item_size > val.get_max_size() && self.vol < val.get_max_size() {
                         take_item_size = val.get_max_size() - self.vol;
                     }
-                    if self.vol + take_item_size > self.max {
+                    if self.vol + take_item_size > self.max  && self.vol < self.max{
                         take_item_size = self.max - self.vol;
                     }
                     slot.vol -= take_item_size;

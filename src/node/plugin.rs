@@ -14,6 +14,8 @@ impl Plugin for NodePlugin {
         register::<furnace::ClayFurnace>(app);
         register::<clay_table::ClayTable>(app);
         register::<clay_unloader::ClayUnloader>(app);
+        register::<clay_generator::ClayGenerator>(app);
+        register::<trash_can::TrashCan>(app);
     }
 }
 
