@@ -33,7 +33,7 @@ impl BasicNode for ClayUnloader {
             Channel::<Item>::default().add_port(
                 PortType::Pull, 
                 Port::default().set_mode(
-                    PortMode::with_cool_down(10)
+                    PortMode::with_cool_down(1)
                 ).set_target_grid(
                     TargetGrid::Specific(Direction::NegX.into_grid_pos())
                 ).set_target_slot(
@@ -42,13 +42,13 @@ impl BasicNode for ClayUnloader {
             ).add_port(
                 PortType::Output, 
                 Port::default().set_mode(
-                    PortMode::with_cool_down(10),
+                    PortMode::with_cool_down(1),
                 ).set_target_grid(
                     TargetGrid::Specific(Direction::X.into_grid_pos())
                 ).set_target_slot(
                     TargetSlot::Specific(SlotID(0))
                 )
-            ),
+            ).configure_time_cost(10),
             TextureBuff("textures/tile/unloader_0.png".to_string())
         ));
     }

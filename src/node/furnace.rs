@@ -111,7 +111,7 @@ fn check_recipe(
         }
         let mut can_insert = false;
         if let Some(slot) = inventory.get_mut(OUTPUT) 
-        && slot.insert(&mut MaterialSlot::<Item>::new().configure_value(Some(item)).configure_volume(1)){
+        && slot.insert(&mut MaterialSlot::<Item>::new().configure_value(Some(item)).configure_volume(1), 0){
             can_insert = true;
         }
         if can_insert 
@@ -135,7 +135,7 @@ fn on_clicked(
             continue;
         }
         if keys.pressed(KeyCode::Space) {
-            inventory.insert(SlotID(0), &mut MaterialSlot::new().configure_value(Some(Item::Clay)).configure_volume(1));
+            inventory.insert(SlotID(0), &mut MaterialSlot::new().configure_value(Some(Item::Clay)).configure_volume(1), 0);
             println!("Inventory に Clay を insert しました。");
             continue;
         }

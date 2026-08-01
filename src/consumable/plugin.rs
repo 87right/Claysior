@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    consumable::{common::*, component::*},
-    grid::{component::*, resource::*, system_set::*},
-    item::component::Item,
+    consumable::{common::*, component::*, resource::RegisteredSlot}, grid::{component::*, resource::*, system_set::*}, item::component::Item,
 };
 
 pub struct ConsumablePlugin;
@@ -13,14 +11,19 @@ impl Plugin for ConsumablePlugin {
             FixedUpdate,
             (
                 (logistics_system::<Item>).in_set(GridFixed::IOExecute),
-                (channel_update::<Item>).in_set(GridFixed::ApplyDiff),
+                (
+                    channel_update::<Item>,
+                    inventory_update::<Item>,
+                ).in_set(GridFixed::ApplyDiff),
             ),
         );
+        app.insert_resource(RegisteredSlot::default());
     }
 }
 
 fn logistics_system<T>(
     mut channel_q: Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
+    mut registered_slot: ResMut<RegisteredSlot>,
     grid: Res<GridEntityMap>,
 ) where
     T: Consumable,
@@ -36,13 +39,13 @@ fn logistics_system<T>(
         }
     }
     for (port, e, from_pos, index) in active_tasks {
-        let Some(mut buff) = get_buff::<T>(&channel_q, port, e) else {
+        let Some((Some(mut buff), time_cost)) = get_buff::<T>(&channel_q, port, e) else {
             continue;
         };
         let tasks = get_entity_tasks::<T>(&channel_q, port, e, &grid);
         for e2 in tasks {
             if e != e2 
-            && input::<T>(&mut channel_q, &mut buff, e2, e, from_pos, &grid) {
+            && input::<T>(&mut channel_q, &mut buff, e2, e, from_pos, &grid, time_cost, &mut registered_slot) {
                 break;
             }
         }
@@ -55,7 +58,7 @@ fn logistics_system<T>(
             if let Ok((channel, _, open_pos, _)) = channel_q.get(open_entity) {
                 for port in &channel.open {
                     if port.grid.check(*open_pos, pull_pos)
-                    && let Some(buff) = get_buff(&channel_q, *port, open_entity) {
+                    && let Some((Some(buff), _)) = get_buff(&channel_q, *port, open_entity) {
                         open_ports.push((buff, open_entity));
                     }
                 }
@@ -64,9 +67,10 @@ fn logistics_system<T>(
         for (buff, open_entity) in &mut open_ports {
             let mut open_pulled = None;
             if let Ok((mut channel, mut inventory, _, _)) = channel_q.get_mut(pull_entity) {
+                let time_cost = channel.time_cost;
                 if pull_entity != *open_entity
                 && let Some(pull_port) = channel.pull.get_mut(index)
-                && pull_port.insert(&mut inventory, &mut buff.content) {
+                && pull_port.insert(&mut inventory, &mut buff.content, time_cost, &mut registered_slot, pull_entity) {
                     open_pulled = Some((buff.clone(), *open_entity));
                     channel.inserted(PortType::Pull, index);
                 }
@@ -84,11 +88,12 @@ fn get_buff<T>(
     channel_q: &Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
     port: Port<T>,
     e: Entity,
-) -> Option<MaterialSlotBuff<T>>
+) -> Option<(Option<MaterialSlotBuff<T>>, u64)>
 where
     T: Consumable,
 {
-    port.get_buff(channel_q.get(e).ok()?.1)
+    let (channel, inventory, _, _) = channel_q.get(e).ok()?;
+    Some((port.get_buff(inventory), channel.time_cost))
 }
 
 fn get_entity_tasks<T>(
@@ -113,6 +118,8 @@ fn input<T>(
     from_entity: Entity,
     from_pos: GridPos,
     grid: &Res<GridEntityMap>,
+    time_cost: u64,
+    registered_slot: &mut RegisteredSlot,
 ) -> bool
 where
     T: Consumable,
@@ -120,7 +127,17 @@ where
     let Ok((mut c, mut i, pos, _)) = channel_q.get_mut(e) else {
         return false;
     };
-    c.insert(&mut *i, buff, from_entity, from_pos, *pos, grid)
+    c.insert(
+        &mut *i, 
+        buff, 
+        from_entity, 
+        from_pos, 
+        e, 
+        *pos, 
+        grid, 
+        registered_slot, 
+        time_cost
+    )
 }
 
 fn apply<T>(
@@ -159,5 +176,25 @@ fn channel_update<T> (
         for port in &mut channel.open {
             port.mode.update();
         }
+    }
+}
+
+fn inventory_update<T> (
+    mut registered_slot: ResMut<RegisteredSlot>,
+    mut inventory_q: Query<&mut Inventory<T>>,
+) where 
+    T: Consumable,
+{
+    let mut valid_list = vec![];
+    for (index, (entity, slot_id)) in registered_slot.0.iter().enumerate() {
+        if let Ok(mut inventory) = inventory_q.get_mut(*entity) 
+        && let Some(slot) = inventory.get_mut(*slot_id) {
+            if slot.update_and_is_valid() {
+                valid_list.push(index);
+            }
+        }
+    }
+    for index in valid_list {
+        registered_slot.remove(index);
     }
 }

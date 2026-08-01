@@ -72,7 +72,8 @@ fn on_update(
             SlotID(0), 
             &mut MaterialSlot::<Item>::new()
                 .configure_value(Some(Item::Clay))
-                .configure_volume(1)
+                .configure_volume(1),
+                0
             );
     }
 }

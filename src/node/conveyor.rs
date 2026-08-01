@@ -57,9 +57,9 @@ impl BasicNode for Conveyor {
                         .set_target_grid(
                             TargetGrid::Specific(Direction::NegX.into_grid_pos())
                         ).set_mode(
-                            PortMode::with_cool_down(10)
+                            PortMode::with_cool_down(1)
                         )
-                ),
+                ).configure_time_cost(10),
             TextureBuff("textures/tile/conveyor_0_0.png".to_string()),
         ));
     }
@@ -251,6 +251,8 @@ fn on_left_clicked(
                 slot.vol = 1;
             }
         }
+
+        println!("{inv:#?}");
 
         let mut new_dir = Direction::NegX;
         if keys.pressed(KeyCode::KeyS) {

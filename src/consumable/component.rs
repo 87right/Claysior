@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    consumable::common::*,
-    grid::{component::*, resource::*},
+    consumable::{common::*, resource::RegisteredSlot}, grid::{component::*, resource::*},
 };
 
 #[derive(Component)]
@@ -15,6 +14,7 @@ where
     pub open: Vec<Port<T>>,
     pub pull: Vec<Port<T>>,
     pub gather: Vec<Port<T>>,
+    pub time_cost: u64,
 }
 impl<T> Channel<T>
 where
@@ -26,13 +26,16 @@ where
         buff: &mut MaterialSlotBuff<T>,
         _from_entity: Entity,
         from_pos: GridPos,
+        to_entity: Entity,
         to_pos: GridPos,
-        _grid: &Res<GridEntityMap>
+        _grid: &Res<GridEntityMap>,
+        registered_slot: &mut RegisteredSlot,
+        time_cost: u64,
     ) -> bool {
         let mut result = false;
         for input in self.input.iter_mut() {
             if input.grid.check(from_pos, to_pos)
-            && input.insert(to_inventory, &mut buff.content) {
+            && input.insert(to_inventory, &mut buff.content, time_cost, registered_slot, to_entity) {
                 result = true;
             }
         }
@@ -63,6 +66,10 @@ where
             PortType::Gather => &mut self.gather,
         }.get_mut(index)
     }
+    pub fn configure_time_cost(mut self, value: u64) -> Self {
+        self.time_cost = value;
+        self
+    }
 }
 
 impl<T> Default for Channel<T>
@@ -76,6 +83,7 @@ where
             open: vec![],
             pull: vec![],
             gather: vec![],
+            time_cost: 0,
         }
     }
 }
@@ -102,7 +110,7 @@ where
         if !self.active {return None;}
         for id in self.slot.get_slot_ids(inventory.size) {
             if let Some(slot) = inventory.get(id)
-                && let Some(val) = slot.val
+                && let Some(val) = slot.get_val()
                 && self.filter.check(val)
             {
                 return Some((id, slot));
@@ -121,15 +129,16 @@ where
             None
         }
     }
-    pub fn insert(&mut self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>) -> bool {
+    pub fn insert(&mut self, inventory: &mut Inventory<T>, from: &mut MaterialSlot<T>, time_cost: u64, registered_slot: &mut RegisteredSlot, e: Entity) -> bool {
         if !self.active || !self.mode.is_valid() {return false;}
         let mut inserted = false;
         for id in self.slot.get_slot_ids(inventory.size) {
             if let Some(to) = inventory.get_mut(id)
-                && to.insert(from)
+                && to.insert(from, time_cost)
             {
                 inserted = true;
                 self.mode.reset();
+                registered_slot.push(e, id);
             }
         }
         inserted
@@ -311,9 +320,9 @@ where
         });
         self
     }
-    pub fn insert(&mut self, id: SlotID, val: &mut MaterialSlot<T>) -> bool {
+    pub fn insert(&mut self, id: SlotID, val: &mut MaterialSlot<T>, time_cost: u64) -> bool {
         if let Some(slot) = self.content.get_mut(id.0) {
-            slot.insert(val)
+            slot.insert(val, time_cost)
         } else {
             false
         }
@@ -339,6 +348,7 @@ where
     pub val: Option<T>,
     pub vol: u64,
     pub max: u64,
+    pub reserved: u64,
 }
 impl<T> MaterialSlot<T>
 where
@@ -349,8 +359,26 @@ where
             val: None,
             vol: 0,
             max: u64::MAX,
+            reserved: 0,
         }
     }
+    pub fn get_val(&self) -> Option<T> {
+        if self.reserved == 0 {
+            self.val
+        } else {
+            None::<T>
+        }
+    }
+
+    pub fn update_and_is_valid(&mut self) -> bool {
+        if self.reserved == 0 {
+            true
+        } else {
+            self.reserved -= 1;
+            self.reserved == 0
+        }
+    }
+
     pub fn configure_value(mut self, value: Option<T>) -> Self{
         self.val = value;
         self
@@ -373,26 +401,37 @@ where
         self.max = volume;
     }
 
-    pub fn insert(&mut self, slot: &mut Self) -> bool {
+    pub fn insert(&mut self, slot: &mut Self, time_cost: u64) -> bool {
+        if self.reserved != 0 {
+            return false;
+        }
         if let Some(val) = self.val {
             if self.vol == val.get_max_size() {
                 return false;
             }
-            if let Some(r_val) = slot.val
-                && val == r_val
+            if self.vol < self.max
+            && self.vol < val.get_max_size()
+            && let Some(r_val) = slot.val
+            && val == r_val
             {
                 let item_cap = val.get_max_size() < slot.vol + self.vol;
                 let slot_cap = self.max < slot.vol + self.vol;
                 if item_cap || slot_cap {
                     let mut take_item_size = slot.vol;
-                    if self.vol + take_item_size > val.get_max_size() && self.vol < val.get_max_size() {
+                    if self.vol + take_item_size > val.get_max_size() {
                         take_item_size = val.get_max_size() - self.vol;
                     }
-                    if self.vol + take_item_size > self.max  && self.vol < self.max{
+                    if self.vol + take_item_size > self.max {
                         take_item_size = self.max - self.vol;
                     }
                     slot.vol -= take_item_size;
                     self.vol += take_item_size;
+
+                    if slot.vol == 0 {
+                        slot.val = None::<T>;
+                    }
+
+                    self.reserved = time_cost;
 
                     return true;
                 } else {
@@ -400,14 +439,29 @@ where
                     slot.val = None;
                     slot.vol = 0;
 
+                    self.reserved = time_cost;
+
                     return true;
                 }
             }
         } else {
-            self.val = slot.val;
-            self.vol = slot.vol;
-            slot.val = None;
-            slot.vol = 0;
+            if slot.vol > self.max {
+                self.val = slot.val;
+                self.vol = self.max;
+                slot.vol -= self.max;
+            } else if let Some(item) = slot.val
+            && slot.vol > item.get_max_size() {
+                self.val = slot.val;
+                self.vol = item.get_max_size();
+                slot.vol -= item.get_max_size();
+            } else {
+                self.val = slot.val;
+                self.vol = slot.vol;
+                slot.val = None;
+                slot.vol = 0;
+            }
+
+            self.reserved = time_cost;
 
             return true;
         }
