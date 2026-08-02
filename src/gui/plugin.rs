@@ -1,15 +1,18 @@
 use bevy::{color::palettes::css::YELLOW, prelude::*};
 
-use crate::input::{resource::LayeredButtonInput, system_set::InputLayer};
+use crate::{gui::component::GUICore, input::{resource::LayeredButtonInput, system_set::InputLayer}};
 
 pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Test(None));
         app.add_systems(Update, (
-            test,
-            test_input
-        ).in_set(InputLayer::UI));
+            (
+                test,
+                test_input
+            ).in_set(InputLayer::UI),
+            handle_free_sprite,
+        ));
     }
 }
 
@@ -49,3 +52,22 @@ fn test_input(
 
 #[derive(Resource)]
 struct Test(Option<Entity>);
+
+fn handle_free_sprite(
+    mut commands: Commands,
+    fs_q: Query<(Entity, &mut GUICore)>,
+    time: Res<Time>,
+) {
+    for (e, mut gui) in fs_q {
+        let GUICore::FreeSprite { from, to, duration, pros: remain } = gui.as_mut();
+        *remain += time.delta_secs();
+        if duration < remain {
+            commands.entity(e).despawn();
+        } else {
+            let pos = *from + (*to - *from) * (*remain / *duration);
+            commands.entity(e).insert(
+                Transform::from_xyz(pos.x, pos.y, 10.)
+            );
+        }
+    }
+}

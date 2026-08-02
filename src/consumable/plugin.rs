@@ -22,12 +22,15 @@ impl Plugin for ConsumablePlugin {
 }
 
 fn logistics_system<T>(
+    mut commands: Commands,
     mut channel_q: Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos, Entity)>,
     mut registered_slot: ResMut<RegisteredSlot>,
     grid: Res<GridEntityMap>,
 ) where
     T: Consumable,
 {
+    let mut t_moved: Vec<(Vec2, Vec2, u64, String)> = vec![];
+
     let mut active_tasks: Vec<(Port<T>, Entity, GridPos, usize)> = vec![];
     let mut passive_tasks: Vec<(Port<T>, Entity, GridPos, usize)> = vec![];
     for (channel, _, pos, e) in channel_q.as_readonly() {
@@ -44,8 +47,11 @@ fn logistics_system<T>(
         };
         let tasks = get_entity_tasks::<T>(&channel_q, port, e, &grid);
         for e2 in tasks {
+            let mut pos = GridPos(ivec2(0, 0));
+            let Some(item) = buff.content.val else {continue;};
             if e != e2 
-            && input::<T>(&mut channel_q, &mut buff, e2, e, from_pos, &grid, time_cost, &mut registered_slot) {
+            && input::<T>(&mut channel_q, &mut buff, e2, e, from_pos, &grid, time_cost, &mut registered_slot, &mut pos) {
+                t_moved.push((from_pos.to_world_pos(), pos.to_world_pos(), time_cost, format!("textures/item/{}.png", item.get_id())));
                 break;
             }
         }
@@ -59,13 +65,14 @@ fn logistics_system<T>(
                 for port in &channel.open {
                     if port.grid.check(*open_pos, pull_pos)
                     && let Some((Some(buff), _)) = get_buff(&channel_q, *port, open_entity) {
-                        open_ports.push((buff, open_entity));
+                        open_ports.push((buff, open_entity, *open_pos));
                     }
                 }
             }
         }
-        for (buff, open_entity) in &mut open_ports {
+        for (buff, open_entity, open_pos) in &mut open_ports {
             let mut open_pulled = None;
+            let Some(item) = buff.content.val else {continue;};
             if let Ok((mut channel, mut inventory, _, _)) = channel_q.get_mut(pull_entity) {
                 let time_cost = channel.time_cost;
                 if pull_entity != *open_entity
@@ -73,6 +80,7 @@ fn logistics_system<T>(
                 && pull_port.insert(&mut inventory, &mut buff.content, time_cost, &mut registered_slot, pull_entity) {
                     open_pulled = Some((buff.clone(), *open_entity));
                     channel.inserted(PortType::Pull, index);
+                    t_moved.push((open_pos.to_world_pos(), pull_pos.to_world_pos(), time_cost, item.get_id()));
                 }
             }
             if let Some((buff, open_entity)) = open_pulled 
@@ -81,6 +89,10 @@ fn logistics_system<T>(
                 break;
             }
         }
+    }
+
+    for (from, to, ticks, texture_source) in t_moved {
+        crate::gui::util::spawn_free_sprite(&mut commands, from, to, ticks, texture_source);
     }
 }
 
@@ -120,6 +132,7 @@ fn input<T>(
     grid: &Res<GridEntityMap>,
     time_cost: u64,
     registered_slot: &mut RegisteredSlot,
+    res_pos: &mut GridPos,
 ) -> bool
 where
     T: Consumable,
@@ -127,6 +140,7 @@ where
     let Ok((mut c, mut i, pos, _)) = channel_q.get_mut(e) else {
         return false;
     };
+    *res_pos = *pos;
     c.insert(
         &mut *i, 
         buff, 

@@ -22,14 +22,15 @@ impl BasicNode for Conveyor {
                 on_network_changed.in_set(GridFixed::OnPlaced),
                 on_left_clicked.in_set(GridFixed::MainUpdate),
                 on_update.in_set(GridFixed::MainUpdate),
+                despawn_entity.in_set(GridFixed::OnPlaced),
             ),
         );
     }
     fn remove(commands: &mut EntityCommands) {
         commands
-            .remove::<Conveyor>()
             .remove::<Inventory<Item>>()
-            .remove::<Channel<Item>>();
+            .remove::<Channel<Item>>()
+            .insert(RemainForDespawnEntity);
     }
     fn spawn(commands: &mut Commands, entity: Entity) {
         commands.entity(entity).insert((
@@ -94,6 +95,23 @@ impl Conveyor {
         } else {
             false
         }
+    }
+}
+
+#[derive(Component)]
+struct RemainForDespawnEntity;
+
+fn despawn_entity(
+    mut commands: Commands,
+    conveyor_q: Query<(&Conveyor, Entity), With<RemainForDespawnEntity>>
+) {
+    for (conveyor, entity) in conveyor_q {
+        if let Some(entity) = conveyor.has_item {
+            commands.entity(entity).despawn();
+        }
+        commands.entity(entity)
+            .remove::<Conveyor>()
+            .remove::<RemainForDespawnEntity>();
     }
 }
 
@@ -252,8 +270,6 @@ fn on_left_clicked(
             }
         }
 
-        println!("{inv:#?}");
-
         let mut new_dir = Direction::NegX;
         if keys.pressed(KeyCode::KeyS) {
             new_dir = Direction::NegY;
@@ -302,7 +318,13 @@ fn on_update(
 ) {
     for (mut con, pos, inv) in c_q {
         if con.has_item.is_some()
-        != inv.get(SlotID(0)).and_then(|x| x.val).is_some() {
+        != inv.get(SlotID(0)).and_then(|x| {
+            if x.reserved == 0 {
+                x.val
+            } else {
+                None::<Item>
+            }
+        }).is_some() {
             if let Some(e) = con.has_item {
                 con.has_item = None;
                 commands.entity(e).despawn();

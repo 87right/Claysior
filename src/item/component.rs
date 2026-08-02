@@ -6,7 +6,13 @@ use crate::consumable::common::*;
 pub enum Item {
     Clay,
 }
-impl Consumable for Item {}
+impl Consumable for Item {
+    fn get_id(&self) -> String {
+        match self {
+            Item::Clay => "clay"
+        }.to_string()
+    }
+}
 
 #[derive(Component)]
 pub struct Pickupable;
