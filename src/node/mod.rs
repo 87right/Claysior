@@ -9,3 +9,4 @@ pub mod clay_table;
 pub mod clay_unloader;
 pub mod clay_generator;
 pub mod trash_can;
+pub mod clay_distributor;

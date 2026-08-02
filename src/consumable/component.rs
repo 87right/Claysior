@@ -320,6 +320,12 @@ where
         });
         self
     }
+    pub fn configure_all_slots(mut self, f: fn(slot: &mut MaterialSlot<T>)) -> Self {
+        for slot in &mut self.content {
+            f(slot);
+        };
+        self
+    }
     pub fn insert(&mut self, id: SlotID, val: &mut MaterialSlot<T>, time_cost: u64) -> bool {
         if let Some(slot) = self.content.get_mut(id.0) {
             slot.insert(val, time_cost)

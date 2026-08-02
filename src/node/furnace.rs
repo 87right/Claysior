@@ -46,11 +46,13 @@ impl BasicNode for ClayFurnace {
     fn spawn(commands: &mut Commands, entity: Entity) {
         commands.entity(entity).insert((
             ClayFurnace {
-                timer: Timer::from_seconds(3., TimerMode::Once),
+                timer: Timer::from_seconds(10., TimerMode::Once),
                 running: false,
             },
             TextureBuff("textures/tile/clay_furnace_0.png".to_string()),
-            Inventory::<Item>::new(2),
+            Inventory::<Item>::new(2).configure_all_slots(|slot| {
+                slot.set_max_volume(10);
+            }),
             Channel::<Item>::default().add_port(
                 PortType::Input, 
                 Port::default().set_target_grid(
@@ -78,7 +80,7 @@ fn register_recipe(
     mut recipe: ResMut<Recipe<FurnaceInput, FurnaceOutput>>
 ) {
     let input = FurnaceInput(Item::Clay);
-    let output = FurnaceOutput(Item::Clay, 1);
+    let output = FurnaceOutput(Item::Brick, 1);
     recipe.insert(input, output);
 }
 

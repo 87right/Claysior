@@ -80,7 +80,7 @@ fn logistics_system<T>(
                 && pull_port.insert(&mut inventory, &mut buff.content, time_cost, &mut registered_slot, pull_entity) {
                     open_pulled = Some((buff.clone(), *open_entity));
                     channel.inserted(PortType::Pull, index);
-                    t_moved.push((open_pos.to_world_pos(), pull_pos.to_world_pos(), time_cost, item.get_id()));
+                    t_moved.push((open_pos.to_world_pos(), pull_pos.to_world_pos(), time_cost, format!("textures/item/{}.png", item.get_id())));
                 }
             }
             if let Some((buff, open_entity)) = open_pulled 

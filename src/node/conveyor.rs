@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    consumable::{common::PortType, component::*}, grid::{common::*, component::*, resource::*, system_set::*, util::*}, item::component::Item, node::*,
+    consumable::{common::{Consumable, PortType}, component::*}, grid::{common::*, component::*, resource::*, system_set::*, util::*}, item::component::Item, node::*,
 };
 
 #[derive(Component)]
@@ -330,7 +330,7 @@ fn on_update(
                 commands.entity(e).despawn();
             } else {
                 con.has_item = Some(commands.spawn((
-                    TextureBuff("textures/item/clay.png".to_string()),
+                    TextureBuff(format!("textures/item/{}.png", inv.get(SlotID(0)).unwrap().val.unwrap().get_id()).to_string()),
                     Transform::from_xyz(pos.to_world_pos().x, pos.to_world_pos().y, 2.),
                 )).id());
             }

@@ -16,6 +16,7 @@ impl Plugin for NodePlugin {
         register::<clay_unloader::ClayUnloader>(app);
         register::<clay_generator::ClayGenerator>(app);
         register::<trash_can::TrashCan>(app);
+        register::<clay_distributor::ClayDistributor>(app);
     }
 }
 

@@ -1,10 +1,9 @@
-use bevy::prelude::*;
-
-use crate::{consumable::{common::PortType, component::{Channel, Inventory, Port, PortMode, SlotID, TargetGrid, TargetSlot}}, grid::{common::*, component::{LeftClicked, TextureBuff}, system_set::GridFixed, util::replace}, item::component::Item};
+use crate::node::prelude::*;
 
 #[derive(Component)]
 pub struct ClayUnloader {
-    direction: Direction
+    direction: Direction,
+    has_item: Option<Entity>,
 }
 impl BasicNode for ClayUnloader {
     fn get_id() -> String {
@@ -13,7 +12,10 @@ impl BasicNode for ClayUnloader {
     fn register(app: &mut App) {
         app.add_systems(
             FixedUpdate, 
-            on_clicked.in_set(GridFixed::MainUpdate),
+            (
+                on_clicked,
+                on_update,
+            ).in_set(GridFixed::MainUpdate),
         );
     }
     fn remove(commands: &mut EntityCommands) {
@@ -26,6 +28,7 @@ impl BasicNode for ClayUnloader {
         commands.entity(entity).insert((
             ClayUnloader {
                 direction: Direction::NegX,
+                has_item: None
             },
             Inventory::<Item>::new(1).configure_slot(SlotID(0), |slot| {
                 slot.set_max_volume(1)
@@ -54,6 +57,32 @@ impl BasicNode for ClayUnloader {
     }
 }
 
+
+fn on_update(
+    mut commands: Commands,
+    cu_q: Query<(&mut ClayUnloader, &GridPos, &Inventory<Item>)>,
+) {
+    for (mut cu, pos, inv) in cu_q {
+        if cu.has_item.is_some()
+        != inv.get(SlotID(0)).and_then(|x| {
+            if x.reserved == 0 {
+                x.val
+            } else {
+                None::<Item>
+            }
+        }).is_some() {
+            if let Some(e) = cu.has_item {
+                cu.has_item = None;
+                commands.entity(e).despawn();
+            } else {
+                cu.has_item = Some(commands.spawn((
+                    TextureBuff(format!("textures/item/{}.png", inv.get(SlotID(0)).unwrap().val.unwrap().get_id()).to_string()),
+                    Transform::from_xyz(pos.to_world_pos().x, pos.to_world_pos().y, 2.),
+                )).id());
+            }
+        }
+    }
+}
 
 fn on_clicked(
     mut commands: Commands,
