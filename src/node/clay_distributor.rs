@@ -9,7 +9,10 @@ impl BasicNode for ClayDistributor {
         "clay_distributor".to_string()
     }
     fn register(app: &mut App) {
-        app.add_systems(FixedUpdate, (on_update, on_clicked).in_set(GridFixed::MainUpdate));
+        app.add_systems(FixedUpdate, (
+            on_update, 
+            on_clicked
+        ).chain().in_set(GridFixed::MainUpdate));
     }
     fn remove(commands: &mut EntityCommands) {
         commands
@@ -67,11 +70,15 @@ impl BasicNode for ClayDistributor {
 
 fn on_clicked(
     mut commands: Commands,
-    tc_q: Query<Entity, (With<LeftClicked>, With<ClayDistributor>)>,
+    tc_q: Query<(Entity, &mut ClayDistributor), With<LeftClicked>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for entity in tc_q {
+    for (entity, mut dis) in tc_q {
         if keys.pressed(KeyCode::ControlLeft) {
+            if let Some(e) = dis.has_item {
+                commands.entity(e).despawn();
+            }
+            dis.has_item = None;
             replace::<crate::node::air::Air>(&mut commands, entity);
             continue;
         }

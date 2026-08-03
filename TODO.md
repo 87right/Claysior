@@ -13,7 +13,7 @@
 - [x] Port に Mode を追加（即時、一度、インターバルありなど）
 - [ ] Recipe に RON ファイルを自動で読み込む機能を追加
 - [ ] UI 規格を決定
-- [ ] 滑らかなアイテム移動を実装
+- [x] 滑らかなアイテム移動を実装
 - [x] Grid System 専用の ButtonInput<MouseButton> を追加
 - [ ] PortMode::Always に、動作速度の上限を追加
 - [ ] GUI に種類を持たせる（ポップアップ、フルスクリーンインベントリ、HUD）

@@ -13,9 +13,9 @@ impl BasicNode for ClayUnloader {
         app.add_systems(
             FixedUpdate, 
             (
-                on_clicked,
                 on_update,
-            ).in_set(GridFixed::MainUpdate),
+                on_clicked,
+            ).chain().in_set(GridFixed::MainUpdate),
         );
     }
     fn remove(commands: &mut EntityCommands) {
@@ -91,6 +91,10 @@ fn on_clicked(
 ) {
     for (mut unloader, mut channel, entity) in furnace_q {
         if keys.pressed(KeyCode::ControlLeft) {
+            if let Some(e) = unloader.has_item {
+                commands.entity(e).despawn();
+            }
+            unloader.has_item = None;
             replace::<crate::node::air::Air>(&mut commands, entity);
             continue;
         }
