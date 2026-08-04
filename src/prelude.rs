@@ -1,7 +1,10 @@
 pub use {
     bevy::prelude::*,
     crate::{
-        input::system_set::*,
+        input::{
+            system_set::*,
+            resource::LayeredButtonInput,
+        },
     }
 };
 
