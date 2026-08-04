@@ -1,5 +1,26 @@
-# TODO リスト
+# TODO リスト beta
 
+> 主な目標点
+> 1. `Query<..., With<LeftClick>>` などの `System Poling` ベースから、`Observer` を用いた `Trigger` ベースに移行。
+> 2. `on_placed`（旧 `BasicNode trait` 内） 相当の処理を、`ComponentHook` を用いた自動発火へ移行する。
+> 3. マップサイズを可変にする。
+> 4. 物流をグラフ化して、物流システムをよりきれいにする。
+> 5. `Sprite` の再利用を徹底して、アニメーションの負荷・滑らかさの改善。
+> 6. 描画システムを `GUI` へ統合
+
+- [x] `Camera` の初期化処理実装 
+- [ ] `Camera Movement System` を、`InputLayer::Camera` に実装
+- [ ] `Grid` にワールド初期化を実装
+- [ ] `Consumable` に `Inventory<T>` と `Channel<T>` を実装
+- [ ] `Grid` に `Trigger` たちを生やす
+- [ ] `Node` のテスト実装（コンベア）
+- [ ] `GUI` のテスト実装（`Node` の状態管理）
+
+
+:::archived
+# TODO リスト alpha
+
+alpha 時代の産物
 - [x] クリックシステムの復旧
 - [x] Fixed Update への移行
 - [x] コンベアのテクスチャ差分追加
@@ -37,3 +58,4 @@
 - [x] アイテム搬出が、搬出先の slot が空の場合に上限を超えて搬出されることがあるのを修正
 - [ ] Inventory<T> の vol 計算（に伴う val 更新）の責任を Inventory に持たせる
 - [ ] Channel に「アイテムを表示するかどうか」の情報を持たせる
+:::
