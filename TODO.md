@@ -9,12 +9,16 @@
 > 6. 描画システムを `GUI` へ統合
 
 - [x] `Camera` の初期化処理実装 
-- [ ] `Camera Movement System` を、`InputLayer::Camera` に実装
+- [x] `Camera Movement System` を、`InputLayer::Camera` に実装
+- [ ] `Camera Movement System` のマウスミドルクリック参照をマウス左クリック参照に変更
+- [ ] `Camera Movement System` に `WASD` 移動を追加
+- [ ] `Camera Zoom System` がカーソル位置を考慮するようにする
 - [ ] `Grid` にワールド初期化を実装
 - [ ] `Consumable` に `Inventory<T>` と `Channel<T>` を実装
 - [ ] `Grid` に `Trigger` たちを生やす
 - [ ] `Node` のテスト実装（コンベア）
 - [ ] `GUI` のテスト実装（`Node` の状態管理）
+- [x] FPS 表示機能（クォリティ問わず）
 
 
 :::archived
