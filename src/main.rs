@@ -2,7 +2,7 @@
 
 mod camera;
 mod common;
-mod consumable;
+mod manu_material;
 mod grid;
 mod gui;
 mod input;

@@ -7,6 +7,11 @@ pub use {
         },
         common::{
             constants::*,
+        },
+        manu_material::{
+            common::*,
+            inventory::*,
+            channel::*,
         }
     }
 };
