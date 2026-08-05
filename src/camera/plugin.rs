@@ -42,12 +42,12 @@ fn camera_movement_system(
     if let Some(position) = window.cursor_position()
         && let Projection::Orthographic(ref orthographic) = *projection
     {
-        if buttons.just_pressed(MouseButton::Middle) {
+        if buttons.just_pressed(MouseButton::Left) {
             camera_drag_data.last_cursor_pos = position;
             camera_drag_data.last_camera_pos = transform.translation;
         }
 
-        if buttons.pressed(MouseButton::Middle) {
+        if buttons.pressed(MouseButton::Left) {
             transform.translation = camera_drag_data.last_camera_pos
                 + (camera_drag_data.last_cursor_pos - position).extend(0.)
                     * Vec3 {
