@@ -19,9 +19,23 @@ impl Plugin for CameraPlugin {
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,
-        Camera::default(),
+        Camera {
+            order: 0,
+            ..default()
+        },
         Transform::from_xyz(0., 0., 5.),
         MainCamera,
+        GameLayer::MAIN,
+    ));
+    commands.spawn((
+        Camera2d,
+        Camera {
+            order: 1,
+            ..default()
+        },
+        Transform::from_xyz(0., 0., 5.),
+        GUICamera,
+        GameLayer::GUI,
     ));
 }
 
@@ -29,8 +43,9 @@ fn spawn_test_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Transform::from_xyz(0., 0., 0.),
         Sprite::from_image(
-            asset_server.load("textures/background/basic_tile.png")
-        )
+            asset_server.load("textures/background/basic_tile.png"),
+        ),
+        GameLayer::MAIN
     ));
 }
 
@@ -88,7 +103,7 @@ fn key_input(
 fn camera_zoom_system(
     mut msr_scroll: MessageReader<MouseWheel>,
     mouse: Res<LayeredButtonInput<MouseButton>>,
-    projection_query: Single<&mut Projection, With<Camera>>,
+    projection_query: Single<&mut Projection, (With<Camera>, With<MainCamera>)>,
 ) {
     if mouse.is_consumed() {return;}
     let mut projection = projection_query.into_inner();

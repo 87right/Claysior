@@ -13,6 +13,8 @@
 - [x] `Camera Movement System` のマウスミドルクリック参照をマウス左クリック参照に変更
 - [x] `Camera Movement System` に `WASD` 移動を追加
 - [ ] `Camera Zoom System` を、`scale` 大きさに応じて変化を大きくする
+- [x] `Camera` に `RenderLayer` を実装
+- [x] デバッグ用の `FPS Viewer` を `GUI` レイヤーに配置
 - [ ] `Camera Zoom System` がカーソル位置を考慮するようにする
 - [ ] `Grid` にワールド初期化を実装
 - [ ] `Consumable` に `Inventory<T>` と `Channel<T>` を実装

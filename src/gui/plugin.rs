@@ -42,7 +42,8 @@ fn switch_debug_mode(
             commands.spawn((
                 Text2d::new(format!("{:.1}FPS", 1. / time.delta().as_secs_f32())),
                 FPSViewer,
-                Transform::from_xyz(0., 0., 1.)
+                Transform::from_xyz(0., 0., 1.),
+                GameLayer::GUI,
             ));
         } else {
             for e in q {

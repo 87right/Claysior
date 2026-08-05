@@ -8,3 +8,6 @@ pub struct CameraDragData {
 
 #[derive(Component)]
 pub struct MainCamera;
+
+#[derive(Component)]
+pub struct GUICamera;
