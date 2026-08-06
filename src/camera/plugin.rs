@@ -7,7 +7,7 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CameraDragData::default());
-        app.add_systems(Startup, (spawn_camera, spawn_test_sprite));
+        app.add_systems(Startup, spawn_camera);
         app.add_systems(Update, (
             mouse_input,
             key_input,
@@ -16,14 +16,17 @@ impl Plugin for CameraPlugin {
     }
 }
 
-fn spawn_camera(mut commands: Commands) {
+fn spawn_camera(mut commands: Commands, setting: Res<WorldGeneratingSetting>) {
     commands.spawn((
         Camera2d,
         Camera {
             order: 0,
             ..default()
         },
-        Transform::from_xyz(0., 0., 5.),
+        Transform::from_xyz(
+            GameSetting::CELL_SIZE * (setting.width + 1) as f32 / 2.,
+            GameSetting::CELL_SIZE * (setting.width + 1) as f32 / 2., 
+            0.),
         MainCamera,
         GameLayer::MAIN,
     ));
@@ -36,16 +39,6 @@ fn spawn_camera(mut commands: Commands) {
         Transform::from_xyz(0., 0., 5.),
         GUICamera,
         GameLayer::GUI,
-    ));
-}
-
-fn spawn_test_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Transform::from_xyz(0., 0., 0.),
-        Sprite::from_image(
-            asset_server.load("textures/background/basic_tile.png"),
-        ),
-        GameLayer::MAIN
     ));
 }
 

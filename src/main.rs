@@ -18,5 +18,6 @@ fn main() {
         .add_plugins(plugin::InputPlugin)
         .add_plugins(plugin::CameraPlugin)
         .add_plugins(plugin::GUIPlugin)
+        .add_plugins(plugin::GridPlugin)
         .run();
 }

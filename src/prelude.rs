@@ -12,6 +12,14 @@ pub use {
             common::*,
             inventory::*,
             channel::*,
+        },
+        grid::{
+            util::*,
+            component::*,
+            resource::*,
+        },
+        gui::{
+            component::*,
         }
     }
 };
@@ -21,5 +29,6 @@ pub mod plugin {
         input::plugin::InputPlugin,
         camera::plugin::CameraPlugin,
         gui::plugin::GUIPlugin,
+        grid::plugin::GridPlugin,
     };
 }
