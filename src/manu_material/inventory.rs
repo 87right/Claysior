@@ -28,6 +28,12 @@ where
     filter: MaterialFilter<T>,
 }
 
+#[derive(Component, Default, Clone)]
+pub enum InventorySlice {
+    #[default]
+    Any
+}
+
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
 pub struct SlotID(usize);
 

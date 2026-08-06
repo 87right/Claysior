@@ -43,8 +43,8 @@ fn draw_grid_line(
 ) {
     if debug.0 {
         gizmos.cross_2d(Vec2::new(
-            GameSetting::CELL_SIZE * (setting.width + 1) as f32 / 2.,
-            GameSetting::CELL_SIZE * (setting.width + 1) as f32 / 2., 
+            GameSetting::CELL_SIZE * (setting.width  + 1) as f32 / 2.,
+            GameSetting::CELL_SIZE * (setting.height + 1) as f32 / 2., 
         ), 12., bevy::color::palettes::css::FUCHSIA);
     }
 }
@@ -109,13 +109,13 @@ fn on_grid_reload(
     for mut sprite in background {
         exist = true;
         *sprite = Sprite::from_image(
-            asset_server.load(format!("textures/background/{}.png", setting.background).to_string())
+            asset_server.load(format!("textures/background/{}.png", setting.background))
         );
     }
     if !exist {
         commands.spawn((
             Sprite::from_image(
-                asset_server.load(format!("textures/background/{}.png", setting.background).to_string())
+                asset_server.load(format!("textures/background/{}.png", setting.background))
             ),
             BackGround,
             Anchor::BOTTOM_LEFT,

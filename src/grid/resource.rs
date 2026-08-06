@@ -17,14 +17,14 @@ impl GridEntityMap {
 pub struct WorldGeneratingSetting {
     pub width: u64,
     pub height: u64,
-    pub background: String,
+    pub background: &'static str,
 }
 impl Default for WorldGeneratingSetting {
     fn default() -> Self {
         Self {
             width: 16,
             height: 16,
-            background: "basic_tile".to_string()
+            background: "basic_tile"
         }
     }
 }
