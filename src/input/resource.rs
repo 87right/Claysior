@@ -36,12 +36,12 @@ where
         self.consumed = false;
     }
     pub fn pressed(&self, input: T) -> bool {
-        self.button_input.pressed(input)
+        !self.consumed && self.button_input.pressed(input)
     }
     pub fn just_pressed(&self, input: T) -> bool {
-        self.button_input.just_pressed(input)
+        !self.consumed && self.button_input.just_pressed(input)
     }
     pub fn just_released(&self, input: T) -> bool {
-        self.button_input.just_released(input)
+        !self.consumed && self.button_input.just_released(input)
     }
 }

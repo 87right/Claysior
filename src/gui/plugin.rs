@@ -15,6 +15,7 @@ impl Plugin for GUIPlugin {
             on_window_resized,
             draw_grid_line,
         ));
+        app.add_systems(Update, bind_full_scr.in_set(InputLayer::GUI));
     }
 }
 
@@ -126,5 +127,32 @@ fn on_grid_reload(
             ),
             GameLayer::MAIN,
         ));
+    }
+}
+
+fn bind_full_scr(
+    mut commands: Commands,
+    fs_q: Query<Entity, With<gui::FullScr>>,
+    mut keys: ResMut<LayeredButtonInput<KeyCode>>,
+    mut mouse: ResMut<LayeredButtonInput<MouseButton>>,
+) {
+    if keys.just_pressed(KeyCode::Escape) {
+        println!("Escape Pressed");
+        let mut exist = false;
+        for fs in fs_q {
+            commands.entity(fs).despawn();
+            exist = true;
+        }
+        if exist {
+            keys.consume();
+        } else {
+            commands.spawn(gui::FullScr {});
+        }
+    } else {
+        // debug
+        if !fs_q.is_empty() {
+            keys.consume();
+            mouse.consume();
+        }
     }
 }
