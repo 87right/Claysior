@@ -29,3 +29,12 @@ impl GridPos {
         Transform::from_xyz(vec2.x, vec2.y, z)
     }
 }
+
+#[derive(Component, Clone, Copy, PartialEq, Eq, Default)]
+pub enum GridSlice {
+    #[default]
+    Any,
+    Specific {
+        pos: GridPos
+    },
+}

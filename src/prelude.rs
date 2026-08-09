@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 pub use {
     bevy::prelude::*,
     crate::{
@@ -30,5 +32,6 @@ pub mod plugin {
         camera::plugin::CameraPlugin,
         gui::plugin::GUIPlugin,
         grid::plugin::GridPlugin,
+        manu_material::plugin::ManuMaterialPlugin,
     };
 }
