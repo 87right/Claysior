@@ -109,21 +109,30 @@ mod tests {
     }
     #[test]
     fn port_target() {
-        let port = Port::<Item>::default()
-            .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 2 } });
+        let channel = Channel::<Item>::default()
+            .add_port(
+                PortType::Output,
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 2 } })
+            )
+            .add_port(
+                PortType::Pull,
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 2, y: 1 } })
+            );
+        
         let mut v = vec![];
-        port.reg_output_order(GridPos { x: 0, y: 0 }, &mut v);
 
-        assert_eq!(v.len(), 1);
+        channel.pull_order(&Inventory::<Item>::new(2), GridPos{ x: 0, y: 0 }, &mut v);
+
+        assert_eq!(v.len(), 2);
+
         assert_eq!(v[0].to, GridPos { x: 1, y: 2 });
         assert_eq!(v[0].from, GridPos { x: 0, y: 0 });
         assert!(v[0].slot.is_none());
-        
-        port.reg_pull_order(GridPos { x: 2, y: 1 }, &mut v);
 
-        assert_eq!(v.len(), 2);
-        assert_eq!(v[1].from, GridPos { x: 3, y: 3 });
-        assert_eq!(v[1].to, GridPos { x: 2, y: 1 });
+        assert_eq!(v[1].from, GridPos { x: 2, y: 1 });
+        assert_eq!(v[1].to, GridPos { x: 0, y: 0 });
         assert!(v[1].slot.is_none());
     }
 }

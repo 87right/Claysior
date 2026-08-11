@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct Channel<T>
 where 
     T: ManuMaterial
@@ -56,11 +56,11 @@ where
         }
     }
     pub fn pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-        for port in &self.output {
-            port.reg_output_order(pos, orders);
+        for (id, port) in self.output.iter().enumerate() {
+            port.reg_output_order(pos, orders, id);
         }
-        for port in &self.pull {
-            port.reg_pull_order(pos, orders);
+        for (id, port) in self.pull.iter().enumerate() {
+            port.reg_pull_order(pos, orders, id);
         }
     }
     pub fn write_order(&self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
@@ -79,14 +79,14 @@ where
     T: ManuMaterial
 {
     #![allow(unused)]
-    pub fn reg_output_order(&self, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-        for to_pos in self.target.get_vec(pos) {
-            orders.push(LogisticsOrder { from: pos, to: to_pos, slot: None });
+    pub fn reg_output_order(&self, from: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+        for to in self.target.get_vec(from) {
+            orders.push(LogisticsOrder::new(from, to, LogisticsType::InputOutput, client_id));
         }
     }
-    pub fn reg_pull_order(&self, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-        for from_pos in self.target.get_vec(pos) {
-            orders.push(LogisticsOrder { from: from_pos, to: pos, slot: None });
+    pub fn reg_pull_order(&self, to: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+        for from in self.target.get_vec(to) {
+            orders.push(LogisticsOrder::new(from, to, LogisticsType::OpenPull, client_id));
         }
     }
     pub fn configure_filter(mut self, filter: MaterialFilter<T>) -> Self {
@@ -116,6 +116,20 @@ where
             mode: Default::default(),
             target: Default::default(),
             slot: Default::default(),
+        }
+    }
+}
+
+impl<T> Default for Channel<T>
+where 
+    T: ManuMaterial
+{
+    fn default() -> Self {
+        Self {
+            output: Default::default(),
+            input: Default::default(),
+            open: Default::default(),
+            pull: Default::default(),
         }
     }
 }
