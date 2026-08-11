@@ -57,7 +57,7 @@ where
 }
 
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
-pub struct SlotID(usize);
+pub struct SlotID(pub usize);
 
 impl<T> Default for MaterialSlot<T>
 where 
@@ -94,6 +94,15 @@ where
             size: size,
         }
     }
+    pub fn iter(& self) -> Iter<'_, MaterialSlot<T>> {
+        self.content.iter()
+    }
+    pub fn iter_mut(&mut self) -> IterMut<'_, MaterialSlot<T>> {
+        self.content.iter_mut()
+    }
+    pub fn get(&self, id: SlotID) -> Option<MaterialSlot<T>> {
+        self.content.get(id.0).and_then(|x| Some(x.clone()))
+    }
 }
 
 impl<'a, T> Iterator for InventoryIterator<'a, T> 
@@ -101,6 +110,20 @@ where
     T: ManuMaterial
 {
     type Item = &'a MaterialSlot<T>;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Raw(iter) => iter.next(),
+            Self::Continuity(iter) => iter.next(),
+        }
+    }
+}
+
+impl<'a, T> Iterator for InventoryIteratorMut<'a, T> 
+where 
+    T: ManuMaterial
+{
+    type Item = &'a mut MaterialSlot<T>;
     
     fn next(&mut self) -> Option<Self::Item> {
         match self {
@@ -137,17 +160,15 @@ impl InventorySlice {
             }
         }
     }
-}
-
-impl<T> Inventory<T>
-where 
-    T: ManuMaterial
-{
-    pub fn iter(& self) -> Iter<'_, MaterialSlot<T>> {
-        self.content.iter()
-    }
-    pub fn iter_mut(&mut self) -> IterMut<'_, MaterialSlot<T>> {
-        self.content.iter_mut()
+    pub fn insert<T>(&self, inventory: &mut Inventory<T>, from_slot: &mut MaterialSlot<T>) -> bool
+    where
+        T: ManuMaterial
+    {
+        let mut result = false;
+        for to_slot in self.get_slice_mut(inventory) {
+            result |= to_slot.insert(from_slot);
+        }
+        result
     }
 }
 

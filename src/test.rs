@@ -3,7 +3,7 @@ mod tests {
     use crate::prelude::*;
 
     #[test] 
-    fn normal_insert() {
+    fn slot_normal_insert() {
         let mut slot_1 = MaterialSlot::<Item>::default();
         let mut slot_2 = MaterialSlot::<Item>::default();
 
@@ -17,7 +17,7 @@ mod tests {
         assert_eq!(slot_2.get().1, 0);
     }
     #[test] 
-    fn overflow_insert() {
+    fn slot_overflow_insert() {
         let mut slot_1 = MaterialSlot::<Item>::default();
         let mut slot_2 = MaterialSlot::<Item>::default();
 
@@ -31,7 +31,7 @@ mod tests {
         assert_eq!(slot_2.get().1, 1);
     }
     #[test] 
-    fn unable_insert() {
+    fn slot_unable_insert() {
         let mut slot_1 = MaterialSlot::<Item>::default();
         let mut slot_2 = MaterialSlot::<Item>::default();
 
@@ -43,5 +43,68 @@ mod tests {
         assert_eq!(slot_1.get().1, 9999);
         assert_eq!(slot_2.get().0, Some(Item::Clay));
         assert_eq!(slot_2.get().1, 1);
+    }
+    #[test]
+    fn inventory_normal_insert() {
+        let mut inventory = Inventory::<Item>::new(2);
+        let mut slot = MaterialSlot::<Item>::default();
+        let slice = InventorySlice::Any;
+        slot.set(Some(Item::Clay), 1);
+
+        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(inventory.get(SlotID(0)).is_some());
+        
+        let slot_0 = inventory.get(SlotID(0)).unwrap();
+        let slot_1 = inventory.get(SlotID(1)).unwrap();
+
+        assert_eq!(slot_0.get().0, Some(Item::Clay));
+        assert_eq!(slot_0.get().1, 1);
+
+        assert_eq!(slot_1.get().0, None);
+        assert_eq!(slot_1.get().1, 0);
+    }
+    #[test]
+    fn inventory_slot_overflow_insert() {
+        let mut inventory = Inventory::<Item>::new(2);
+        let mut slot = MaterialSlot::<Item>::default();
+        let slice = InventorySlice::Any;
+        slot.set(Some(Item::Clay), 5000);
+
+        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(inventory.get(SlotID(0)).is_some());
+
+        slot.set(Some(Item::Clay), 5000);
+
+        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(inventory.get(SlotID(1)).is_some());
+        
+        let slot_0 = inventory.get(SlotID(0)).unwrap();
+        let slot_1 = inventory.get(SlotID(1)).unwrap();
+
+        assert_eq!(slot_0.get().0, Some(Item::Clay));
+        assert_eq!(slot_0.get().1, 9999);
+        
+        assert_eq!(slot_1.get().0, Some(Item::Clay));
+        assert_eq!(slot_1.get().1, 1);
+    }
+    #[test]
+    fn inventory_unable_insert() {
+        let mut inventory = Inventory::<Item>::new(2);
+        let mut slot = MaterialSlot::<Item>::default();
+        let slice = InventorySlice::Any;
+        
+        slot.set(Some(Item::Clay), 9999);
+
+        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(inventory.get(SlotID(0)).is_some());
+
+        slot.set(Some(Item::Clay), 9999);
+
+        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(inventory.get(SlotID(1)).is_some());
+        
+        slot.set(Some(Item::Clay), 1);
+
+        assert!(!slice.insert(&mut inventory, &mut slot));
     }
 }
