@@ -60,7 +60,7 @@ where
             port.reg_output_order(pos, orders);
         }
         for port in &self.pull {
-            port.reg_pull_order(inventory, pos, orders);
+            port.reg_pull_order(pos, orders);
         }
     }
     pub fn write_order(&self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
@@ -84,7 +84,7 @@ where
             orders.push(LogisticsOrder { from: pos, to: to_pos, slot: None });
         }
     }
-    pub fn reg_pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
+    pub fn reg_pull_order(&self, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
         for from_pos in self.target.get_vec(pos) {
             orders.push(LogisticsOrder { from: from_pos, to: pos, slot: None });
         }
