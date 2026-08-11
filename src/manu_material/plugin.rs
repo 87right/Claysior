@@ -39,3 +39,30 @@ where
         }
     }
 }
+
+fn test() {
+    let mut slot_1 = MaterialSlot::<Item>::default();
+    let mut slot_2 = MaterialSlot::<Item>::default();
+
+    println!("テスト: 空のスロットに挿入してみる");
+    slot_1.set(None, 0);
+    slot_2.set(Some(Item::Clay), 1);
+    println!("-> {} (expect: true)", slot_1.insert(&mut slot_2));
+
+    let mut slot_1 = MaterialSlot::<Item>::default();
+    let mut slot_2 = MaterialSlot::<Item>::default();
+
+    println!("テスト: オーバーフローしてみる");
+    slot_1.set(Some(Item::Clay), 9998);
+    slot_2.set(Some(Item::Clay), 2);
+    println!("-> {} (expect: true)", slot_1.insert(&mut slot_2));
+    println!("-> {} (expect 1)", slot_2.get().1);
+
+    let mut slot_1 = MaterialSlot::<Item>::default();
+    let mut slot_2 = MaterialSlot::<Item>::default();
+
+    println!("テスト: すでにmaxのものへの挿入");
+    slot_1.set(Some(Item::Clay), 9999);
+    slot_2.set(Some(Item::Clay), 1);
+    println!("-> {} (expect: false)", slot_1.insert(&mut slot_2));
+}

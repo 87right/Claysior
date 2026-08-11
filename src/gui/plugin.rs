@@ -69,7 +69,9 @@ fn switch_debug_mode(
                 Anchor::TOP_LEFT,
                 GUITransform {
                     x: 0.,
-                    y: 1024.
+                    y: 1024.,
+                    width: 50.,
+                    height: 100., 
                 }
             ));
         } else {
@@ -84,6 +86,8 @@ fn switch_debug_mode(
 pub struct GUITransform {
     x: f32,
     y: f32,
+    width: f32,
+    height: f32,
 }
 
 fn on_window_resized(

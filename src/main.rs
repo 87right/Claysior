@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod test;
 mod camera;
 mod common;
 mod manu_material;

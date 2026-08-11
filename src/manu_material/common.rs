@@ -1,6 +1,10 @@
 use crate::prelude::*;
 
-pub trait ManuMaterial: Component + Clone + Copy + PartialEq + Eq {}
+pub trait ManuMaterial: Component + Clone + Copy + PartialEq + Eq {
+    fn get_max_size(&self) -> u64 {
+        9999
+    }
+}
 
 pub struct MaterialSlotBuff<T>
 where 
@@ -36,8 +40,20 @@ where
     pub slot: MaterialSlotBuff<T>,
 }
 
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Item {
     Clay,
 }
 impl ManuMaterial for Item {}
+
+impl<T> MaterialFilter<T>
+where 
+    T: ManuMaterial
+{
+    pub fn check(&self, value: T) -> bool {
+        match self {
+            Self::Any => true,
+            Self::Specific(filter) => *filter == value,
+        }
+    }
+}
