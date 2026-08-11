@@ -11,7 +11,7 @@ where
     pull  : Vec<Port<T>>,
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct Port<T> 
 where 
     T: ManuMaterial
@@ -57,10 +57,10 @@ where
     }
     pub fn pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
         for port in &self.output {
-            port.pull_output_order(inventory, pos, orders);
+            port.reg_output_order(pos, orders);
         }
         for port in &self.pull {
-            port.pull_pull_order(inventory, pos, orders);
+            port.reg_pull_order(inventory, pos, orders);
         }
     }
     pub fn write_order(&self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
@@ -79,10 +79,43 @@ where
     T: ManuMaterial
 {
     #![allow(unused)]
-    pub fn pull_output_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-
+    pub fn reg_output_order(&self, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
+        for to_pos in self.target.get_vec(pos) {
+            orders.push(LogisticsOrder { from: pos, to: to_pos, slot: None });
+        }
     }
-    pub fn pull_pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-
+    pub fn reg_pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
+        for from_pos in self.target.get_vec(pos) {
+            orders.push(LogisticsOrder { from: from_pos, to: pos, slot: None });
+        }
+    }
+    pub fn configure_filter(mut self, filter: MaterialFilter<T>) -> Self {
+        self.filter = filter;
+        self
+    }
+    pub fn configure_mode(mut self, mode: PortMode) -> Self {
+        self.mode = mode;
+        self
+    }
+    pub fn configure_target(mut self, target: GridSlice) -> Self {
+        self.target = target;
+        self
+    }
+    pub fn configure_slot(mut self, slot: InventorySlice) -> Self {
+        self.slot = slot;
+        self
+    }
+}
+impl<T> Default for Port<T> 
+where 
+    T: ManuMaterial
+{
+    fn default() -> Self {
+        Self {
+            filter: Default::default(),
+            mode: Default::default(),
+            target: Default::default(),
+            slot: Default::default(),
+        }
     }
 }

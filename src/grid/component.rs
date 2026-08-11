@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Component, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct GridPos{
     pub x: u64,
     pub y: u64,
@@ -37,4 +37,13 @@ pub enum GridSlice {
     Specific {
         pos: GridPos
     },
+}
+
+impl GridSlice {
+    pub fn get_vec(&self, base: GridPos) -> Vec<GridPos> {
+        match self {
+            Self::Any => vec![], // Output / Pull 型としては使わない
+            Self::Specific { pos } => vec![*pos + base],
+        }
+    }
 }

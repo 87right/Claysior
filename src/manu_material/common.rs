@@ -37,7 +37,7 @@ where
 {
     pub from: GridPos,
     pub to: GridPos,
-    pub slot: MaterialSlotBuff<T>,
+    pub slot: Option<MaterialSlotBuff<T>>,
 }
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]

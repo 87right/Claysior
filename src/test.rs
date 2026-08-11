@@ -92,7 +92,7 @@ mod tests {
         let mut inventory = Inventory::<Item>::new(2);
         let mut slot = MaterialSlot::<Item>::default();
         let slice = InventorySlice::Any;
-        
+
         slot.set(Some(Item::Clay), 9999);
 
         assert!(slice.insert(&mut inventory, &mut slot));
@@ -106,5 +106,15 @@ mod tests {
         slot.set(Some(Item::Clay), 1);
 
         assert!(!slice.insert(&mut inventory, &mut slot));
+    }
+    #[test]
+    fn port_target() {
+        let port = Port::<Item>::default()
+            .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 2 } });
+        let mut v = vec![];
+        port.reg_output_order(GridPos { x: 0, y: 0 }, &mut v);
+
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].to, GridPos { x: 1, y: 2 });
     }
 }
