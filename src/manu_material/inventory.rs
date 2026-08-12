@@ -107,6 +107,14 @@ where
     pub fn get_mut(&mut self, id: SlotID) -> Option<&mut MaterialSlot<T>> {
         self.content.get_mut(id.0)
     }
+    pub fn apply_buff(&mut self, buff: &MaterialSlotBuff::<T>) {
+        let id = &buff.id;
+        let slot = &buff.slot;
+
+        if let Some(inv_slot) = self.get_mut(*id) {
+            *inv_slot = slot.clone();
+        }
+    }
 }
 
 impl<'a, T> Iterator for InventoryIterator<'a, T> 

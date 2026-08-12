@@ -109,7 +109,7 @@ mod tests {
     }
     #[test]
     fn port_target() {
-        let channel = Channel::<Item>::default()
+        let mut channel = Channel::<Item>::default()
             .add_port(
                 PortType::Output,
                 Port::<Item>::default()
@@ -162,5 +162,153 @@ mod tests {
         let value = buff.slot.get();
         assert_eq!(value.0, Some(Item::Clay));
         assert_eq!(value.1, 1);
+    }
+    #[test]
+    fn logistics_all() {
+        let mut inventory_0 = Inventory::<Item>::new(1);
+        let mut inventory_1 = Inventory::<Item>::new(1);
+
+        let mut channel_0 = Channel::<Item>::default()
+            .add_port(
+                PortType::Input, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            ).add_port(
+                PortType::Output, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            );
+        let mut channel_1 = Channel::<Item>::default()
+            .add_port(
+                PortType::Input, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            ).add_port(
+                PortType::Output, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            );
+
+        let mut initial_slot = MaterialSlot::<Item>::default();
+        initial_slot.set(Some(Item::Clay), 1);
+
+        {
+            let slot_0 = inventory_0.get_mut(SlotID(0));
+            assert!(slot_0.is_some());
+            let slot_0 = slot_0.unwrap();
+
+            slot_0.insert(&mut initial_slot);
+
+            assert_eq!(slot_0.get().0, Some(Item::Clay));
+        }
+
+        let mut orders = vec![];
+
+        channel_0.pull_order(&inventory_0, GridPos { x: 0, y: 0 }, &mut orders);
+        assert_eq!(orders.len(), 1);
+
+        channel_0.write_order(&inventory_0, &mut orders[0]);
+        assert!(orders[0].slot.is_some());
+
+        channel_1.response_order(&mut inventory_1, &mut orders[0]);
+
+        {
+            let slot = inventory_1.get(SlotID(0));
+            assert!(slot.is_some());
+
+            let slot = slot.unwrap();
+            assert_eq!(slot.get().0, Some(Item::Clay));
+        }
+
+        channel_0.check_order(&mut inventory_0, &orders[0]);
+
+        {
+            let slot = inventory_0.get(SlotID(0));
+            assert!(slot.is_some());
+
+            let slot = slot.unwrap();
+            assert_eq!(slot.get().0, None);
+        }
+    }
+    #[test]
+    fn logistics_overflow_all() {
+        let mut inventory_0 = Inventory::<Item>::new(1);
+        let mut inventory_1 = Inventory::<Item>::new(1);
+
+        let mut channel_0 = Channel::<Item>::default()
+            .add_port(
+                PortType::Input, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            ).add_port(
+                PortType::Output, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            );
+        let mut channel_1 = Channel::<Item>::default()
+            .add_port(
+                PortType::Input, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            ).add_port(
+                PortType::Output, 
+                Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 1 } })
+            );
+
+        let mut initial_slot = MaterialSlot::<Item>::default();
+        initial_slot.set(Some(Item::Clay), 5000);
+
+        {
+            let slot_0 = inventory_0.get_mut(SlotID(0));
+            assert!(slot_0.is_some());
+            let slot_0 = slot_0.unwrap();
+
+            slot_0.insert(&mut initial_slot);
+
+            assert_eq!(slot_0.get().0, Some(Item::Clay));
+        }
+        
+        initial_slot.set(Some(Item::Clay), 5000);
+
+        {
+            let slot_1 = inventory_1.get_mut(SlotID(0));
+            assert!(slot_1.is_some());
+            let slot_1 = slot_1.unwrap();
+
+            slot_1.insert(&mut initial_slot);
+
+            assert_eq!(slot_1.get().0, Some(Item::Clay));
+        }
+
+        let mut orders = vec![];
+
+        channel_0.pull_order(&inventory_0, GridPos { x: 0, y: 0 }, &mut orders);
+        assert_eq!(orders.len(), 1);
+
+        channel_0.write_order(&inventory_0, &mut orders[0]);
+        assert!(orders[0].slot.is_some());
+
+        channel_1.response_order(&mut inventory_1, &mut orders[0]);
+
+        {
+            let slot = inventory_1.get(SlotID(0));
+            assert!(slot.is_some());
+
+            let slot = slot.unwrap();
+            assert_eq!(slot.get().0, Some(Item::Clay));
+            assert_eq!(slot.get().1, 9999);
+        }
+
+        channel_0.check_order(&mut inventory_0, &orders[0]);
+
+        {
+            let slot = inventory_0.get(SlotID(0));
+            assert!(slot.is_some());
+
+            let slot = slot.unwrap();
+            assert_eq!(slot.get().0, Some(Item::Clay));
+            assert_eq!(slot.get().1, 1);
+        }
     }
 }

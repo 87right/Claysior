@@ -20,6 +20,7 @@ where
     slot  : InventorySlice,
     mode  : PortMode,
     target: GridSlice,
+    used  : bool,
 }
 
 #[derive(Component, Default)]
@@ -55,27 +56,61 @@ where
             PortType::Pull => &self.pull,
         }
     }
-    pub fn pull_order(&self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
-        for (id, port) in self.output.iter().enumerate() {
+    pub fn pull_order(&mut self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
+        for (id, port) in self.output.iter_mut().enumerate() {
             port.reg_output_order(pos, orders, id);
         }
-        for (id, port) in self.pull.iter().enumerate() {
+        for (id, port) in self.pull.iter_mut().enumerate() {
             port.reg_pull_order(pos, orders, id);
         }
     }
-    pub fn write_order(&self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
+    pub fn write_order(&mut self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
         match order.logistics_type {
             LogisticsType::InputOutput => {
-
+                if let Some(port) = self.output.get_mut(order.client_id) {
+                    order.write(port.get_first_buff(inventory));
+                } else {
+                    panic!("Output による LogisticsOrder 作成のロジックに不備があります（不明な index）");
+                }
             },
-            LogisticsType::OpenPull => {},
+            LogisticsType::OpenPull => {
+                if let Some(port) = self.open.get_mut(order.client_id) {
+                    order.write(port.get_first_buff(inventory));
+                } else {
+                    panic!("Pull による LogisticsOrder 作成のロジックに不備があります（不明な index）");
+                }
+            },
         }
     }
     pub fn response_order(&mut self, inventory: &mut Inventory<T>, order: &mut LogisticsOrder<T>) {
-
+        let Some(slot) = &mut order.slot else {return;};
+        
+        match order.logistics_type {
+            LogisticsType::InputOutput => {
+                for port in self.input.iter_mut() {
+                    port.insert(inventory, &mut slot.slot);
+                }
+            },
+            LogisticsType::OpenPull => {
+                for port in self.pull.iter_mut() {
+                    if port.insert(inventory, &mut slot.slot) {
+                        port.used();
+                        break;
+                    }
+                }
+            },
+        }
     }
     pub fn check_order(&mut self, inventory: &mut Inventory<T>, order: &LogisticsOrder<T>) {
+        if let Some(buff) = &order.slot {
+            inventory.apply_buff(buff);
+        }
 
+        if order.is_done()
+        && order.logistics_type == LogisticsType::OpenPull 
+        && let Some(port) = self.pull.get_mut(order.client_id) {
+            port.used();
+        }
     }
 }
 
@@ -84,17 +119,20 @@ where
     T: ManuMaterial
 {
     #![allow(unused)]
-    pub fn reg_output_order(&self, from: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+    pub fn reg_output_order(&mut self, from: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+        self.used = false;
         for to in self.target.get_vec(from) {
             orders.push(LogisticsOrder::new(from, to, LogisticsType::InputOutput, client_id));
         }
     }
-    pub fn reg_pull_order(&self, to: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+    pub fn reg_pull_order(&mut self, to: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
+        self.used = false;
         for from in self.target.get_vec(to) {
             orders.push(LogisticsOrder::new(from, to, LogisticsType::OpenPull, client_id));
         }
     }
     pub fn get_first_buff(&mut self, inventory: &Inventory<T>) -> Option<MaterialSlotBuff<T>> {
+        if self.used {return None;}
         for id in self.slot.get_slot_id(inventory) {
             if let Some(slot) = inventory.get(*id)
             && let Some(value) = slot.get().0 
@@ -103,6 +141,18 @@ where
             }
         }
         None
+    }
+    pub fn insert(&mut self, inventory: &mut Inventory<T>, slot: &mut MaterialSlot<T>) -> bool {
+        let mut result = false;
+        for id in self.slot.get_slot_id(inventory).iter() {
+            if let Some(to_slot) = inventory.get_mut(*id) {
+                result |= to_slot.insert(slot);
+            }
+        }
+        result
+    }
+    pub fn used(&mut self) {
+        self.used = true;
     }
     pub fn configure_filter(mut self, filter: MaterialFilter<T>) -> Self {
         self.filter = filter;
@@ -131,6 +181,7 @@ where
             mode: Default::default(),
             target: Default::default(),
             slot: Default::default(),
+            used: false,
         }
     }
 }
