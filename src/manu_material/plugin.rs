@@ -15,8 +15,8 @@ where
     T: ManuMaterial
 {
     let mut orders = Vec::<LogisticsOrder::<T>>::default();
-    for (mut channel, inventory, pos) in &mut log_node_q {
-        channel.pull_order(&inventory, *pos, &mut orders);
+    for (mut channel, _, pos) in &mut log_node_q {
+        channel.pull_order(*pos, &mut orders);
     }
     for mut order in orders {
         if let Some(from_entity) = grid.get(order.from)

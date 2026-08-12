@@ -123,7 +123,7 @@ mod tests {
         
         let mut v = vec![];
 
-        channel.pull_order(&Inventory::<Item>::new(2), GridPos{ x: 0, y: 0 }, &mut v);
+        channel.pull_order(GridPos{ x: 0, y: 0 }, &mut v);
 
         assert_eq!(v.len(), 2);
 
@@ -204,7 +204,7 @@ mod tests {
 
         let mut orders = vec![];
 
-        channel_0.pull_order(&inventory_0, GridPos { x: 0, y: 0 }, &mut orders);
+        channel_0.pull_order(GridPos { x: 0, y: 0 }, &mut orders);
         assert_eq!(orders.len(), 1);
 
         channel_0.write_order(&inventory_0, &mut orders[0]);
@@ -283,7 +283,7 @@ mod tests {
 
         let mut orders = vec![];
 
-        channel_0.pull_order(&inventory_0, GridPos { x: 0, y: 0 }, &mut orders);
+        channel_0.pull_order(GridPos { x: 0, y: 0 }, &mut orders);
         assert_eq!(orders.len(), 1);
 
         channel_0.write_order(&inventory_0, &mut orders[0]);

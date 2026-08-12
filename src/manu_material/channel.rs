@@ -37,7 +37,6 @@ impl<T> Channel<T>
 where 
     T: ManuMaterial
 {
-    #![allow(unused)]
     pub fn add_port(mut self, port_type: PortType, port: Port<T>) -> Self {
         match port_type {
             PortType::Input => &mut self.input,
@@ -56,7 +55,7 @@ where
             PortType::Pull => &self.pull,
         }
     }
-    pub fn pull_order(&mut self, inventory: &Inventory<T>, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
+    pub fn pull_order(&mut self, pos: GridPos, orders: &mut Vec<LogisticsOrder<T>>) {
         for (id, port) in self.output.iter_mut().enumerate() {
             port.reg_output_order(pos, orders, id);
         }
@@ -118,7 +117,6 @@ impl<T> Port<T>
 where 
     T: ManuMaterial
 {
-    #![allow(unused)]
     pub fn reg_output_order(&mut self, from: GridPos, orders: &mut Vec<LogisticsOrder<T>>, client_id: usize) {
         self.used = false;
         for to in self.target.get_vec(from) {
