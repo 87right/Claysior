@@ -11,8 +11,8 @@ pub struct MaterialSlotBuff<T>
 where 
     T: ManuMaterial
 {
-    slot: MaterialSlot<T>,
-    id: SlotID
+    pub slot: MaterialSlot<T>,
+    pub id: SlotID
 }
 
 #[derive(Component, Default, Clone, Copy)]

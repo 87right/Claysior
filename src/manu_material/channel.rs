@@ -64,7 +64,12 @@ where
         }
     }
     pub fn write_order(&self, inventory: &Inventory<T>, order: &mut LogisticsOrder<T>) {
+        match order.logistics_type {
+            LogisticsType::InputOutput => {
 
+            },
+            LogisticsType::OpenPull => {},
+        }
     }
     pub fn response_order(&mut self, inventory: &mut Inventory<T>, order: &mut LogisticsOrder<T>) {
 
@@ -88,6 +93,16 @@ where
         for from in self.target.get_vec(to) {
             orders.push(LogisticsOrder::new(from, to, LogisticsType::OpenPull, client_id));
         }
+    }
+    pub fn get_first_buff(&mut self, inventory: &Inventory<T>) -> Option<MaterialSlotBuff<T>> {
+        for id in self.slot.get_slot_id(inventory) {
+            if let Some(slot) = inventory.get(*id)
+            && let Some(value) = slot.get().0 
+            && self.filter.check(value) {
+                return Some(MaterialSlotBuff::<T>::new(slot.clone(), *id));
+            }
+        }
+        None
     }
     pub fn configure_filter(mut self, filter: MaterialFilter<T>) -> Self {
         self.filter = filter;

@@ -48,7 +48,7 @@ mod tests {
     fn inventory_normal_insert() {
         let mut inventory = Inventory::<Item>::new(2);
         let mut slot = MaterialSlot::<Item>::default();
-        let slice = InventorySlice::Any;
+        let mut slice = InventorySlice::Any;
         slot.set(Some(Item::Clay), 1);
 
         assert!(slice.insert(&mut inventory, &mut slot));
@@ -67,7 +67,7 @@ mod tests {
     fn inventory_slot_overflow_insert() {
         let mut inventory = Inventory::<Item>::new(2);
         let mut slot = MaterialSlot::<Item>::default();
-        let slice = InventorySlice::Any;
+        let mut slice = InventorySlice::Any;
         slot.set(Some(Item::Clay), 5000);
 
         assert!(slice.insert(&mut inventory, &mut slot));
@@ -91,7 +91,7 @@ mod tests {
     fn inventory_unable_insert() {
         let mut inventory = Inventory::<Item>::new(2);
         let mut slot = MaterialSlot::<Item>::default();
-        let slice = InventorySlice::Any;
+        let mut slice = InventorySlice::Any;
 
         slot.set(Some(Item::Clay), 9999);
 
@@ -129,10 +129,38 @@ mod tests {
 
         assert_eq!(v[0].to, GridPos { x: 1, y: 2 });
         assert_eq!(v[0].from, GridPos { x: 0, y: 0 });
+        assert_eq!(v[0].client_id, 0);
         assert!(v[0].slot.is_none());
 
         assert_eq!(v[1].from, GridPos { x: 2, y: 1 });
         assert_eq!(v[1].to, GridPos { x: 0, y: 0 });
+        assert_eq!(v[0].client_id, 0);
         assert!(v[1].slot.is_none());
+    }
+    #[test]
+    fn get_buff_test() {
+        let mut port = Port::<Item>::default()
+                    .configure_target(GridSlice::Specific { pos: GridPos { x: 1, y: 2 } });
+
+        let mut inventory = Inventory::<Item>::new(1);
+
+        let mut slot = MaterialSlot::<Item>::default();
+        slot.set(Some(Item::Clay), 1);
+
+        {
+            let slot_0 = inventory.get_mut(SlotID(0));
+            assert!(slot_0.is_some());
+            slot_0.unwrap().insert(&mut slot);
+        }
+
+        let buff = port.get_first_buff(&inventory);
+        
+        assert!(buff.is_some());
+        let buff = buff.unwrap();
+
+        assert_eq!(buff.id, SlotID(0));
+        let value = buff.slot.get();
+        assert_eq!(value.0, Some(Item::Clay));
+        assert_eq!(value.1, 1);
     }
 }

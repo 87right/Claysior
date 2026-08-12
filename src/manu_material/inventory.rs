@@ -38,6 +38,7 @@ pub enum InventorySlice {
         begin: SlotID,
         end: SlotID,
     },
+    Baked(Vec<SlotID>)
 }
 
 pub enum InventoryIterator<'a, T> 
@@ -56,7 +57,7 @@ where
     Continuity(std::iter::Take<std::iter::Skip<std::slice::IterMut<'a, MaterialSlot<T>>>>),
 }
 
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct SlotID(pub usize);
 
 impl<T> Default for MaterialSlot<T>
@@ -100,8 +101,11 @@ where
     pub fn iter_mut(&mut self) -> IterMut<'_, MaterialSlot<T>> {
         self.content.iter_mut()
     }
-    pub fn get(&self, id: SlotID) -> Option<MaterialSlot<T>> {
-        self.content.get(id.0).and_then(|x| Some(x.clone()))
+    pub fn get(&self, id: SlotID) -> Option<&MaterialSlot<T>> {
+        self.content.get(id.0)
+    }
+    pub fn get_mut(&mut self, id: SlotID) -> Option<&mut MaterialSlot<T>> {
+        self.content.get_mut(id.0)
     }
 }
 
@@ -134,39 +138,37 @@ where
 }
 
 impl InventorySlice {
-    fn get_slice<'a, T>(&self, inventory: &'a Inventory<T>) -> InventoryIterator<'a, T>
+    pub fn get_slot_id<'a, T>(&'a mut self, inventory: &Inventory<T>) -> &'a Vec<SlotID> 
     where 
         T: ManuMaterial
     {
-        match self {
-            Self::Any => InventoryIterator::<'a, T>::Raw(inventory.iter()),
-            Self::Continuity { begin, end } => {
-                let SlotID(begin) = *begin;
-                let SlotID(end) = *end;
-                InventoryIterator::<'a, T>::Continuity(inventory.iter().skip(begin).take(end - begin + 1))
-            }
+        if let Self::Baked(v) = self {
+            return v;
         }
-    }
-    fn get_slice_mut<'a, T>(&self, inventory: &'a mut Inventory<T>) -> InventoryIteratorMut<'a, T>
-    where 
-        T: ManuMaterial
-    {
-        match self {
-            Self::Any => InventoryIteratorMut::<'a, T>::Raw(inventory.iter_mut()),
-            Self::Continuity { begin, end } => {
-                let SlotID(begin) = *begin;
-                let SlotID(end) = *end;
-                InventoryIteratorMut::<'a, T>::Continuity(inventory.iter_mut().skip(begin).take(end - begin + 1))
+
+        *self = Self::Baked(
+            match self {
+                Self::Any => (0..inventory.size).map(SlotID).collect(),
+                Self::Continuity { begin, end } => (begin.0..end.0).filter(|x| *x < inventory.size).map(SlotID).collect(),
+                _ => (0..0).map(SlotID).collect(),
             }
+        );
+
+        if let Self::Baked(v) = self {
+            return v;
+        } else {
+            panic!("到達不可能です");
         }
-    }
-    pub fn insert<T>(&self, inventory: &mut Inventory<T>, from_slot: &mut MaterialSlot<T>) -> bool
+    } 
+    pub fn insert<T>(&mut self, inventory: &mut Inventory<T>, from_slot: &mut MaterialSlot<T>) -> bool
     where
         T: ManuMaterial
     {
         let mut result = false;
-        for to_slot in self.get_slice_mut(inventory) {
-            result |= to_slot.insert(from_slot);
+        for id in self.get_slot_id(inventory).iter() {
+            if let Some(to_slot) = inventory.get_mut(*id) {
+                result |= to_slot.insert(from_slot);
+            }
         }
         result
     }
