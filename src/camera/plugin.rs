@@ -24,8 +24,8 @@ fn spawn_camera(mut commands: Commands, setting: Res<WorldGeneratingSetting>) {
             ..default()
         },
         Transform::from_xyz(
-            GameSetting::CELL_SIZE * (setting.width  + 1) as f32 / 2.,
-            GameSetting::CELL_SIZE * (setting.height + 1) as f32 / 2., 
+            GameSetting::CELL_SIZE * setting.width  as f32 / 2.,
+            GameSetting::CELL_SIZE * setting.height as f32 / 2., 
             0.),
         MainCamera,
         GameLayer::MAIN,

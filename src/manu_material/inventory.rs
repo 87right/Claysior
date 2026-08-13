@@ -214,11 +214,7 @@ where
                 return result;
             }
 
-            let max_size = if self.setting.max_volume < value.get_max_size() {
-                self.setting.max_volume
-            } else {
-                value.get_max_size()
-            };
+            let max_size = self.setting.max_volume.min(value.get_max_size());
             if self.volume > max_size {
                 let over = self.volume - max_size;
                 self.volume = max_size;

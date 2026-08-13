@@ -44,8 +44,8 @@ fn draw_grid_line(
 ) {
     if debug.0 {
         gizmos.cross_2d(Vec2::new(
-            GameSetting::CELL_SIZE * (setting.width  + 1) as f32 / 2.,
-            GameSetting::CELL_SIZE * (setting.height + 1) as f32 / 2., 
+            GameSetting::CELL_SIZE * setting.width  as f32 / 2.,
+            GameSetting::CELL_SIZE * setting.height as f32 / 2., 
         ), 12., bevy::color::palettes::css::FUCHSIA);
     }
 }
@@ -125,8 +125,8 @@ fn on_grid_reload(
             BackGround,
             Anchor::BOTTOM_LEFT,
             Transform::from_xyz(
-                GameSetting::CELL_SIZE / 2.,
-                GameSetting::CELL_SIZE / 2.,
+                0.,
+                0.,
                 0.,
             ),
             GameLayer::MAIN,
