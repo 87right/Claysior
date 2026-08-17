@@ -1,6 +1,6 @@
 use bevy::{sprite::Anchor, window::WindowResized};
 
-use crate::prelude::*;
+use crate::{camera::component::MainCamera, prelude::*};
 
 const PADDING: f32 = 0.999;
 
@@ -15,7 +15,10 @@ impl Plugin for GUIPlugin {
             on_window_resized,
             draw_grid_line,
         ));
-        app.add_systems(Update, bind_full_scr.in_set(InputLayer::GUI));
+        app.add_systems(Update, (
+            bind_full_scr,
+            on_grid_clicked,
+        ).in_set(InputLayer::GUI));
     }
 }
 
@@ -136,7 +139,7 @@ fn on_grid_reload(
 
 fn bind_full_scr(
     mut commands: Commands,
-    fs_q: Query<Entity, With<gui::FullScr>>,
+    fs_q: Query<Entity, With<gui_win::FullScr>>,
     mut keys: ResMut<LayeredButtonInput<KeyCode>>,
     mut mouse: ResMut<LayeredButtonInput<MouseButton>>,
 ) {
@@ -150,13 +153,37 @@ fn bind_full_scr(
         if exist {
             keys.consume();
         } else {
-            commands.spawn(gui::FullScr {});
+            commands.spawn(gui_win::FullScr {});
         }
     } else {
         // debug
         if !fs_q.is_empty() {
             keys.consume();
             mouse.consume();
+        }
+    }
+}
+
+fn on_grid_clicked(
+    mut commands: Commands,
+    mut mouse: ResMut<LayeredButtonInput<MouseButton>>, 
+    grids: Query<(&interactive::Grid, Entity)>,
+    window: Single<&Window>,
+    camera: Single<(&Camera, &GlobalTransform), With<MainCamera>>,
+) {
+    let (camera, transform) = camera.into_inner();
+    if mouse.just_released(MouseButton::Left) 
+    && let Some(cursor) = window.into_inner().cursor_position() {
+        for (grid, e) in grids {
+            if let Ok(cursor) = camera.viewport_to_world_2d(transform, cursor)
+            && let Some(pos) = grid.check(cursor) {
+                commands.trigger(crate::gui::trigger::GridClicked {
+                    entity: e,
+                    index: pos,
+                });
+                mouse.consume();
+                return;
+            }
         }
     }
 }

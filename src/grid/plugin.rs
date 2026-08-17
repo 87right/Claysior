@@ -1,9 +1,10 @@
-use crate::prelude::*;
+use crate::{gui::trigger::GridClicked, prelude::*};
 
 pub struct GridPlugin;
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
         insert_resource(app);
+        app.add_systems(Startup, create_empty_world);
     }
 }
 
@@ -30,5 +31,12 @@ pub fn create_empty_world(
             );
         }
     }
+    commands.spawn(interactive::Grid {
+        base: Vec2 { x: 0.0, y: 0.0 },
+        scale: Vec2 { x: GameSetting::CELL_SIZE, y: GameSetting::CELL_SIZE },
+        size: IVec2 { x: setting.width as i32, y: setting.height as i32 },
+    }).observe(|trigger: On<GridClicked>| {
+        println!("{}", trigger.index);
+    });
 }
 

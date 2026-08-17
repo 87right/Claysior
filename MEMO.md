@@ -109,3 +109,10 @@ fn logistics_system<T>(
   * `MaterialSlot` の発行（コピー）
   * `InventorySlice` の認識
   * `quick_insert` 
+
+
+.
+└── src
+    ├── gui
+    ├── grid
+    └── input
