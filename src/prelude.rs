@@ -22,9 +22,18 @@ pub use {
         },
         gui::{
             component::*,
+        },
+        node::{
+            common::*,
         }
     }
 };
+
+pub mod node {
+    pub use crate::node::{
+        air::Air,
+    };
+}
 
 pub mod plugin {
     pub use crate::{
@@ -33,5 +42,6 @@ pub mod plugin {
         gui::plugin::GUIPlugin,
         grid::plugin::GridPlugin,
         manu_material::plugin::ManuMaterialPlugin,
+        node::plugin::NodePlugin,
     };
 }

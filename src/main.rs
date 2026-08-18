@@ -21,5 +21,6 @@ fn main() {
         .add_plugins(plugin::GUIPlugin)
         .add_plugins(plugin::GridPlugin)
         .add_plugins(plugin::ManuMaterialPlugin)
+        .add_plugins(plugin::NodePlugin)
         .run();
 }
