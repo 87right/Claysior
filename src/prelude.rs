@@ -19,6 +19,7 @@ pub use {
             util::*,
             component::*,
             resource::*,
+            trigger::*,
         },
         gui::{
             component::*,
