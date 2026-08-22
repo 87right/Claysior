@@ -45,3 +45,27 @@ pub mod interactive{
         }
     }
 }
+
+#[derive(Component)]
+pub struct AutoInventoryDisplay<T> 
+where 
+    T: DisplayableManuMaterial
+{
+    pub index: SlotID,
+    pub curr: Option<Entity>,
+    pub pos: Vec2,
+    phantom_data: Option<T>,
+}
+impl<T> AutoInventoryDisplay<T>
+where 
+    T: DisplayableManuMaterial
+{
+    pub fn new(slot_id: SlotID, pos: Vec2) -> Self {
+        Self {
+            index: slot_id,
+            curr: None,
+            pos,
+            phantom_data: None,
+        }
+    }
+}

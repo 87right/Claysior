@@ -115,6 +115,16 @@ where
             *inv_slot = slot.clone();
         }
     }
+    pub fn test_init(mut self, ind: usize, val: Option<T>, vol: u64) -> Self {
+        self.content.get_mut(ind).and_then(|x| {
+            x.value = val; x.volume = vol;
+            None::<T>
+        });
+        self
+    }
+    pub fn test_constructor(size: usize, f: fn(Inventory::<T>) -> Self) -> Self {
+        f(Self::new(size))
+    }
 }
 
 impl<'a, T> Iterator for InventoryIterator<'a, T> 

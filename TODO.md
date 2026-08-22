@@ -16,8 +16,8 @@
 - [x] `Camera` に `RenderLayer` を実装
 - [x] デバッグ用の `FPS Viewer` を `GUI` レイヤーに配置
 - [ ] `Camera Zoom System` がカーソル位置を考慮するようにする
-- [ ] `Grid` にワールド初期化を実装
-- [ ] `Consumable` に `Inventory<T>` と `Channel<T>` を実装
+- [x] `Grid` にワールド初期化を実装
+- [x] `Consumable` に `Inventory<T>` と `Channel<T>` を実装
 - [ ] `Grid` に `Trigger` たちを生やす
 - [ ] `Node` のテスト実装（コンベア）
 - [ ] `GUI` のテスト実装（`Node` の状態管理）

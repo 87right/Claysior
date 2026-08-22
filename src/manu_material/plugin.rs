@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub struct ManuMaterialPlugin;
 impl Plugin for ManuMaterialPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, logistics_system::<Item>);
+        app.add_systems(FixedUpdate, logistics_system::<Item>.in_set(GridSystem::Logistics));
     }
 }
 

@@ -14,6 +14,8 @@ impl Plugin for GUIPlugin {
             switch_debug_mode,
             on_window_resized,
             draw_grid_line,
+            consume_image_buff,
+            auto_item_display::<Item>,
         ));
         app.add_systems(Update, (
             bind_full_scr,
@@ -184,6 +186,52 @@ fn on_grid_clicked(
                 mouse.consume();
                 return;
             }
+        }
+    }
+}
+
+fn consume_image_buff(
+    mut commands: Commands,
+    tasks: Query<(Entity, &texture_material_buff::FromImage)>,
+    asset: Res<AssetServer>,
+) {
+    for (e, &texture_material_buff::FromImage(id)) in tasks {
+        commands.entity(e) 
+            .remove::<texture_material_buff::FromImage>()
+            .insert(
+                Sprite::from_image(
+                    asset.load(id)
+                )
+            );
+    }
+}
+
+fn auto_item_display<T>
+(
+    mut commands: Commands,
+    targ: Query<(&GridPos, &Inventory<T>, &mut AutoInventoryDisplay<T>), Changed<Inventory<Item>>>,
+)
+where 
+    T: DisplayableManuMaterial
+{
+    for (pos, inv, mut cont) in targ {
+        if let Some(item) = inv.get(cont.index) 
+        && let Some(item) = item.get().0{
+            if let Some(pre) = cont.curr {
+                item.insert_texture(commands.entity(pre));
+            } else {
+                let spawn_pos = pos.into_world_pos() + cont.pos;
+                cont.curr = Some(
+                    item.insert_texture(commands.spawn(Transform::from_xyz(
+                        spawn_pos.x, 
+                        spawn_pos.y, 
+                        30.0
+                    ))).id()
+                );
+            }
+        } else if let Some(pre) = cont.curr {
+            commands.entity(pre).despawn();
+            cont.curr = None::<Entity>;
         }
     }
 }

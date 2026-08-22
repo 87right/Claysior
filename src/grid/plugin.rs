@@ -4,6 +4,7 @@ pub struct GridPlugin;
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
         insert_resource(app);
+        configure_system_set(app);
         app.add_systems(Startup, create_empty_world);
     }
 }
@@ -13,6 +14,18 @@ fn insert_resource(app: &mut App) {
     app.insert_resource(WorldGeneratingSetting::default());
 }
 
+fn configure_system_set(app: &mut App) {
+    app.insert_resource(Time::<Fixed>::from_hz(1.0));
+    app.configure_sets(
+        FixedUpdate,
+        (
+            GridSystem::Logistics, 
+            GridSystem::PreUpdate, 
+            GridSystem::Update,
+            GridSystem::PostUpdate,
+            GridSystem::CleanUp,
+        ).chain());
+}
 
 pub fn create_empty_world(
     mut commands: Commands,

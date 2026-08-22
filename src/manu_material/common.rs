@@ -105,6 +105,16 @@ pub enum Item {
     Clay,
 }
 impl ManuMaterial for Item {}
+impl DisplayableManuMaterial for Item {
+    fn insert_texture<'a>(&self, mut commands: EntityCommands<'a>) -> EntityCommands<'a> {
+        commands.insert(
+            match self {
+                Self::Clay => texture_material_buff::FromImage("textures/item/clay.png")
+            }
+        );
+        commands
+    }
+}
 
 impl<T> MaterialFilter<T>
 where 

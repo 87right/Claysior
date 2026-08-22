@@ -111,6 +111,9 @@ where
             port.used();
         }
     }
+    pub fn test_constructor(f: fn(Self) -> Self) -> Self {
+        f(Self::default())
+    }
 }
 
 impl<T> Port<T>
