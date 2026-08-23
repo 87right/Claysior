@@ -41,22 +41,6 @@ pub enum InventorySlice {
     Baked(Vec<SlotID>)
 }
 
-pub enum InventoryIterator<'a, T> 
-where
-    T: ManuMaterial
-{
-    Raw(core::slice::Iter<'a, MaterialSlot<T>>),
-    Continuity(std::iter::Take<std::iter::Skip<std::slice::Iter<'a, MaterialSlot<T>>>>),
-}
-
-pub enum InventoryIteratorMut<'a, T> 
-where
-    T: ManuMaterial
-{
-    Raw(core::slice::IterMut<'a, MaterialSlot<T>>),
-    Continuity(std::iter::Take<std::iter::Skip<std::slice::IterMut<'a, MaterialSlot<T>>>>),
-}
-
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct SlotID(pub usize);
 
@@ -124,34 +108,6 @@ where
     }
     pub fn test_constructor(size: usize, f: fn(Inventory::<T>) -> Self) -> Self {
         f(Self::new(size))
-    }
-}
-
-impl<'a, T> Iterator for InventoryIterator<'a, T> 
-where 
-    T: ManuMaterial
-{
-    type Item = &'a MaterialSlot<T>;
-    
-    fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            Self::Raw(iter) => iter.next(),
-            Self::Continuity(iter) => iter.next(),
-        }
-    }
-}
-
-impl<'a, T> Iterator for InventoryIteratorMut<'a, T> 
-where 
-    T: ManuMaterial
-{
-    type Item = &'a mut MaterialSlot<T>;
-    
-    fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            Self::Raw(iter) => iter.next(),
-            Self::Continuity(iter) => iter.next(),
-        }
     }
 }
 
