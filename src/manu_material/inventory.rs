@@ -159,10 +159,20 @@ where
         self.volume = volume;
         self.clamp();
     }
-    pub fn get(&self) -> (Option<T>, u64, &SlotSetting<T>) {
+    pub fn get(&self) -> Option<(Option<T>, u64, &SlotSetting<T>)> {
+        if self.cd_ticks > 0 {
+            return None;
+        }
+        Some(self.get_raw())
+    }
+    pub fn get_raw(&self) -> (Option<T>, u64, &SlotSetting<T>) {
         (self.value, self.volume, &self.setting)
     }
     pub fn insert(&mut self, slot: &mut MaterialSlot<T>, cd_ticks: u64) -> bool {
+        if self.cd_ticks > 0 {
+            return false;
+        }
+
         let record = slot.clone();
         
         if self.value.is_none() || self.value == slot.value {
@@ -207,5 +217,21 @@ where
     fn equal(&self, rhs: &Self) -> bool {
         self.value == rhs.value && self.volume == rhs.volume
     }
+    pub fn update(&mut self) {
+        if self.cd_ticks > 0 {
+            self.cd_ticks -= 1;
+        }
+    }
+    pub fn setting<'a>(&'a mut self) -> &'a mut SlotSetting<T> {
+        &mut self.setting
+    }
 }
 
+impl<T> SlotSetting<T>
+where 
+    T: ManuMaterial
+{
+    pub fn set_max_volume(&mut self, value: u64) {
+        self.max_volume = value;
+    }
+}

@@ -3,7 +3,10 @@ use crate::prelude::*;
 pub struct ManuMaterialPlugin;
 impl Plugin for ManuMaterialPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, logistics_system::<Item>.in_set(GridSystem::Logistics));
+        app.add_systems(FixedUpdate, (
+            logistics_system::<Item>.in_set(GridSystem::Logistics),
+            handle_slot_cd::<Item>.in_set(GridSystem::CleanUp)
+        ));
     }
 }
 
@@ -36,6 +39,19 @@ where
             from_channel.check_order(&mut from_inventory, &order);
         } else {
             continue;
+        }
+    }
+}
+
+fn handle_slot_cd<T>(
+    inv_q: Query<&mut Inventory<T>>
+)
+where
+    T: ManuMaterial
+{
+    for mut inv in inv_q {
+        for slot in inv.iter_mut() {
+            slot.update();
         }
     }
 }

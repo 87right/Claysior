@@ -58,8 +58,8 @@ where
     pub fn is_done(&self) -> bool {
         if let Some(slot) = &self.slot
         && let Some(reco) = &self.record {
-            slot.slot.get().0 != reco.slot.get().0 ||
-            slot.slot.get().1 != reco.slot.get().1
+            slot.slot.get_raw().0 != reco.slot.get_raw().0 ||
+            slot.slot.get_raw().1 != reco.slot.get_raw().1
         } else {
             self.slot.is_some() && self.record.is_none()
         }
@@ -90,12 +90,13 @@ where
             logistics_type,
             client_id,
             record: None,
-            cd_ticks: 0
+            cd_ticks: 1
         }
     }
-    pub fn write(&mut self, buff: Option<MaterialSlotBuff<T>>) {
+    pub fn write(&mut self, buff: Option<MaterialSlotBuff<T>>, cd_ticks: u64) {
         self.slot = buff.clone();
         self.record = buff;
+        self.cd_ticks = cd_ticks;
     }
     pub fn get_buff_mut(&mut self) -> &mut Option<MaterialSlotBuff<T>> {
         &mut self.slot

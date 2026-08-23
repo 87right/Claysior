@@ -11,10 +11,10 @@ mod tests {
         slot_2.set(Some(Item::Clay), 1);
 
         assert!(slot_1.insert(&mut slot_2, 0));
-        assert_eq!(slot_1.get().0, Some(Item::Clay));
-        assert_eq!(slot_1.get().1, 1);
-        assert_eq!(slot_2.get().0, None);
-        assert_eq!(slot_2.get().1, 0);
+        assert_eq!(slot_1.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_1.get_raw().1, 1);
+        assert_eq!(slot_2.get_raw().0, None);
+        assert_eq!(slot_2.get_raw().1, 0);
     }
     #[test] 
     fn slot_overflow_insert() {
@@ -25,10 +25,10 @@ mod tests {
         slot_2.set(Some(Item::Clay), 2);
 
         assert!(slot_1.insert(&mut slot_2, 0));
-        assert_eq!(slot_1.get().0, Some(Item::Clay));
-        assert_eq!(slot_1.get().1, 9999);
-        assert_eq!(slot_2.get().0, Some(Item::Clay));
-        assert_eq!(slot_2.get().1, 1);
+        assert_eq!(slot_1.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_1.get_raw().1, 9999);
+        assert_eq!(slot_2.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_2.get_raw().1, 1);
     }
     #[test] 
     fn slot_unable_insert() {
@@ -39,10 +39,10 @@ mod tests {
         slot_2.set(Some(Item::Clay), 1);
 
         assert!(!slot_1.insert(&mut slot_2, 0));
-        assert_eq!(slot_1.get().0, Some(Item::Clay));
-        assert_eq!(slot_1.get().1, 9999);
-        assert_eq!(slot_2.get().0, Some(Item::Clay));
-        assert_eq!(slot_2.get().1, 1);
+        assert_eq!(slot_1.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_1.get_raw().1, 9999);
+        assert_eq!(slot_2.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_2.get_raw().1, 1);
     }
     #[test]
     fn inventory_normal_insert() {
@@ -57,11 +57,11 @@ mod tests {
         let slot_0 = inventory.get(SlotID(0)).unwrap();
         let slot_1 = inventory.get(SlotID(1)).unwrap();
 
-        assert_eq!(slot_0.get().0, Some(Item::Clay));
-        assert_eq!(slot_0.get().1, 1);
+        assert_eq!(slot_0.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_0.get_raw().1, 1);
 
-        assert_eq!(slot_1.get().0, None);
-        assert_eq!(slot_1.get().1, 0);
+        assert_eq!(slot_1.get_raw().0, None);
+        assert_eq!(slot_1.get_raw().1, 0);
     }
     #[test]
     fn inventory_slot_overflow_insert() {
@@ -81,11 +81,11 @@ mod tests {
         let slot_0 = inventory.get(SlotID(0)).unwrap();
         let slot_1 = inventory.get(SlotID(1)).unwrap();
 
-        assert_eq!(slot_0.get().0, Some(Item::Clay));
-        assert_eq!(slot_0.get().1, 9999);
+        assert_eq!(slot_0.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_0.get_raw().1, 9999);
         
-        assert_eq!(slot_1.get().0, Some(Item::Clay));
-        assert_eq!(slot_1.get().1, 1);
+        assert_eq!(slot_1.get_raw().0, Some(Item::Clay));
+        assert_eq!(slot_1.get_raw().1, 1);
     }
     #[test]
     fn inventory_unable_insert() {
@@ -159,7 +159,7 @@ mod tests {
         let buff = buff.unwrap();
 
         assert_eq!(buff.id, SlotID(0));
-        let value = buff.slot.get();
+        let value = buff.slot.get_raw();
         assert_eq!(value.0, Some(Item::Clay));
         assert_eq!(value.1, 1);
     }
@@ -199,7 +199,7 @@ mod tests {
 
             slot_0.insert(&mut initial_slot, 0);
 
-            assert_eq!(slot_0.get().0, Some(Item::Clay));
+            assert_eq!(slot_0.get_raw().0, Some(Item::Clay));
         }
 
         let mut orders = vec![];
@@ -217,7 +217,7 @@ mod tests {
             assert!(slot.is_some());
 
             let slot = slot.unwrap();
-            assert_eq!(slot.get().0, Some(Item::Clay));
+            assert_eq!(slot.get_raw().0, Some(Item::Clay));
         }
 
         channel_0.check_order(&mut inventory_0, &orders[0]);
@@ -227,7 +227,7 @@ mod tests {
             assert!(slot.is_some());
 
             let slot = slot.unwrap();
-            assert_eq!(slot.get().0, None);
+            assert_eq!(slot.get_raw().0, None);
         }
     }
     #[test]
@@ -266,7 +266,7 @@ mod tests {
 
             slot_0.insert(&mut initial_slot, 0);
 
-            assert_eq!(slot_0.get().0, Some(Item::Clay));
+            assert_eq!(slot_0.get_raw().0, Some(Item::Clay));
         }
         
         initial_slot.set(Some(Item::Clay), 5000);
@@ -278,7 +278,7 @@ mod tests {
 
             slot_1.insert(&mut initial_slot, 0);
 
-            assert_eq!(slot_1.get().0, Some(Item::Clay));
+            assert_eq!(slot_1.get_raw().0, Some(Item::Clay));
         }
 
         let mut orders = vec![];
@@ -296,8 +296,8 @@ mod tests {
             assert!(slot.is_some());
 
             let slot = slot.unwrap();
-            assert_eq!(slot.get().0, Some(Item::Clay));
-            assert_eq!(slot.get().1, 9999);
+            assert_eq!(slot.get_raw().0, Some(Item::Clay));
+            assert_eq!(slot.get_raw().1, 9999);
         }
 
         channel_0.check_order(&mut inventory_0, &orders[0]);
@@ -307,8 +307,8 @@ mod tests {
             assert!(slot.is_some());
 
             let slot = slot.unwrap();
-            assert_eq!(slot.get().0, Some(Item::Clay));
-            assert_eq!(slot.get().1, 1);
+            assert_eq!(slot.get_raw().0, Some(Item::Clay));
+            assert_eq!(slot.get_raw().1, 1);
         }
     }
 }

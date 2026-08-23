@@ -9,6 +9,7 @@ where
     output: Vec<Port<T>>,
     open  : Vec<Port<T>>,
     pull  : Vec<Port<T>>,
+    cd_ticks: u64,
 }
 
 #[derive(Component)]
@@ -67,14 +68,14 @@ where
         match order.logistics_type {
             LogisticsType::InputOutput => {
                 if let Some(port) = self.output.get_mut(order.client_id) {
-                    order.write(port.get_first_buff(inventory));
+                    order.write(port.get_first_buff(inventory), self.cd_ticks);
                 } else {
                     panic!("Output による LogisticsOrder 作成のロジックに不備があります（不明な index）");
                 }
             },
             LogisticsType::OpenPull => {
                 if let Some(port) = self.open.get_mut(order.client_id) {
-                    order.write(port.get_first_buff(inventory));
+                    order.write(port.get_first_buff(inventory), self.cd_ticks);
                 } else {
                     panic!("Pull による LogisticsOrder 作成のロジックに不備があります（不明な index）");
                 }
@@ -136,7 +137,8 @@ where
         if self.used {return None;}
         for id in self.slot.get_slot_id(inventory) {
             if let Some(slot) = inventory.get(*id)
-            && let Some(value) = slot.get().0 
+            && let Some(value) = slot.get()
+            && let Some(value) = value.0 
             && self.filter.check(value) {
                 return Some(MaterialSlotBuff::<T>::new(slot.clone(), *id));
             }
@@ -197,6 +199,7 @@ where
             input: Default::default(),
             open: Default::default(),
             pull: Default::default(),
+            cd_ticks: 1
         }
     }
 }

@@ -61,16 +61,16 @@ fn test(
     let pos = trigger.index;
     if let Some(e) = grid.get(GridPos { x: pos.x as u64, y: pos.y as u64 }) {
         if let Ok(mut inv) = inv_q.get_mut(e) {
-            if inv.get(SlotID(0)).and_then(|x| x.get().0).is_none() {
+            if inv.get(SlotID(0)).and_then(|x| x.get_raw().0).is_none() {
                 let mut slot = MaterialSlot::default();
                 slot.set(Some(Item::Clay), 1);
                 inv.apply_buff(&MaterialSlotBuff { 
                     slot,
                     id: SlotID(0), 
                 });
-                info!("クリックされたインベントリにテスト用アイテムを挿入しました: {}個", inv.get(SlotID(0)).unwrap().get().1);
+                info!("クリックされたインベントリにテスト用アイテムを挿入しました: {}個", inv.get(SlotID(0)).unwrap().get_raw().1);
             } else {
-                info!("現在の個数: {}個", inv.get(SlotID(0)).unwrap().get().1);
+                info!("現在の個数: {}個", inv.get(SlotID(0)).unwrap().get_raw().1);
                 commands.grid(GridPos::new(pos.x as u64, pos.y as u64))
                     .replace(node::Air);
             }

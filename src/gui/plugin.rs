@@ -227,7 +227,7 @@ where
 {
     for (pos, inv, mut cont) in targ {
         if let Some(item) = inv.get(cont.index) 
-        && let Some(item) = item.get().0{
+        && let Some(item) = item.get_raw().0{
             if let Some(pre) = cont.curr {
                 item.insert_texture(commands.entity(pre));
             } else {
