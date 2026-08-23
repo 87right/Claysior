@@ -71,6 +71,8 @@ fn test(
                 info!("クリックされたインベントリにテスト用アイテムを挿入しました: {}個", inv.get(SlotID(0)).unwrap().get().1);
             } else {
                 info!("現在の個数: {}個", inv.get(SlotID(0)).unwrap().get().1);
+                commands.grid(GridPos::new(pos.x as u64, pos.y as u64))
+                    .replace(node::Air);
             }
         } else {
             commands.entity(e).insert((

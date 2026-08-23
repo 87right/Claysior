@@ -8,7 +8,7 @@ pub struct GUIPlugin;
 impl Plugin for GUIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Debug(false, Timer::from_seconds(1., TimerMode::Repeating)));
-        app.add_systems(Startup, on_grid_reload);
+        app.add_systems(Startup, (on_grid_reload, register_hooks::<Item>));
         app.add_systems(Update, (
             update_debug,
             switch_debug_mode,
@@ -40,6 +40,17 @@ fn update_debug(
             text.0 = format!("{:.1}FPS", 1. / time.delta().as_secs_f32());
         }
     }
+}
+
+fn register_hooks<T: DisplayableManuMaterial>(world: &mut World) {
+    world.register_component_hooks::<AutoInventoryDisplay<T>>()
+        .on_remove(|mut world, context| {
+            if let Ok(entity) = world.get_entity(context.entity)
+            && let Ok(display_entity) = entity.get_components::<&AutoInventoryDisplay<T>>()
+            && let Some(display_entity) = display_entity.curr {
+                world.commands().entity(display_entity).despawn();
+            };
+        });
 }
 
 fn draw_grid_line(

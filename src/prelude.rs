@@ -21,6 +21,7 @@ pub use {
             resource::*,
             trigger::*,
             system_set::GridSystem,
+            command::*,
         },
         gui::{
             component::*,
