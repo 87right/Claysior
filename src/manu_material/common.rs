@@ -48,6 +48,7 @@ where
     pub logistics_type: LogisticsType,
     pub client_id: usize,
     pub record: Option<MaterialSlotBuff<T>>,
+    pub cd_ticks: u64
 }
 
 impl<T> LogisticsOrder<T>
@@ -89,6 +90,7 @@ where
             logistics_type,
             client_id,
             record: None,
+            cd_ticks: 0
         }
     }
     pub fn write(&mut self, buff: Option<MaterialSlotBuff<T>>) {

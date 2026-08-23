@@ -19,6 +19,7 @@ where
     value: Option<T>,
     volume: u64,
     setting: SlotSetting<T>,
+    cd_ticks: u64,
 }
 
 #[derive(Component, Clone)]
@@ -53,6 +54,7 @@ where
             value: None::<T>,
             volume: 0,
             setting: SlotSetting::<T>::default(),
+            cd_ticks: 0,
         }
     }
 }
@@ -134,14 +136,14 @@ impl InventorySlice {
             panic!("到達不可能です");
         }
     } 
-    pub fn insert<T>(&mut self, inventory: &mut Inventory<T>, from_slot: &mut MaterialSlot<T>) -> bool
+    pub fn insert<T>(&mut self, inventory: &mut Inventory<T>, from_slot: &mut MaterialSlot<T>, cd_ticks: u64) -> bool
     where
         T: ManuMaterial
     {
         let mut result = false;
         for id in self.get_slot_id(inventory).iter() {
             if let Some(to_slot) = inventory.get_mut(*id) {
-                result |= to_slot.insert(from_slot);
+                result |= to_slot.insert(from_slot, cd_ticks);
             }
         }
         result
@@ -160,7 +162,7 @@ where
     pub fn get(&self) -> (Option<T>, u64, &SlotSetting<T>) {
         (self.value, self.volume, &self.setting)
     }
-    pub fn insert(&mut self, slot: &mut MaterialSlot<T>) -> bool {
+    pub fn insert(&mut self, slot: &mut MaterialSlot<T>, cd_ticks: u64) -> bool {
         let record = slot.clone();
         
         if self.value.is_none() || self.value == slot.value {
@@ -169,7 +171,12 @@ where
             slot.set_content(self.clamp());
         }
 
-        !slot.equal(&record)
+        if !slot.equal(&record) {
+            self.cd_ticks = cd_ticks;
+            true
+        } else {
+            false
+        }
     }
     fn clamp(&mut self) -> (Option<T>, u64) {
         if let Some(value) = self.value {

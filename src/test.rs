@@ -10,7 +10,7 @@ mod tests {
         slot_1.set(None, 0);
         slot_2.set(Some(Item::Clay), 1);
 
-        assert!(slot_1.insert(&mut slot_2));
+        assert!(slot_1.insert(&mut slot_2, 0));
         assert_eq!(slot_1.get().0, Some(Item::Clay));
         assert_eq!(slot_1.get().1, 1);
         assert_eq!(slot_2.get().0, None);
@@ -24,7 +24,7 @@ mod tests {
         slot_1.set(Some(Item::Clay), 9998);
         slot_2.set(Some(Item::Clay), 2);
 
-        assert!(slot_1.insert(&mut slot_2));
+        assert!(slot_1.insert(&mut slot_2, 0));
         assert_eq!(slot_1.get().0, Some(Item::Clay));
         assert_eq!(slot_1.get().1, 9999);
         assert_eq!(slot_2.get().0, Some(Item::Clay));
@@ -38,7 +38,7 @@ mod tests {
         slot_1.set(Some(Item::Clay), 9999);
         slot_2.set(Some(Item::Clay), 1);
 
-        assert!(!slot_1.insert(&mut slot_2));
+        assert!(!slot_1.insert(&mut slot_2, 0));
         assert_eq!(slot_1.get().0, Some(Item::Clay));
         assert_eq!(slot_1.get().1, 9999);
         assert_eq!(slot_2.get().0, Some(Item::Clay));
@@ -51,7 +51,7 @@ mod tests {
         let mut slice = InventorySlice::Any;
         slot.set(Some(Item::Clay), 1);
 
-        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(slice.insert(&mut inventory, &mut slot, 0));
         assert!(inventory.get(SlotID(0)).is_some());
         
         let slot_0 = inventory.get(SlotID(0)).unwrap();
@@ -70,12 +70,12 @@ mod tests {
         let mut slice = InventorySlice::Any;
         slot.set(Some(Item::Clay), 5000);
 
-        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(slice.insert(&mut inventory, &mut slot, 0));
         assert!(inventory.get(SlotID(0)).is_some());
 
         slot.set(Some(Item::Clay), 5000);
 
-        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(slice.insert(&mut inventory, &mut slot, 0));
         assert!(inventory.get(SlotID(1)).is_some());
         
         let slot_0 = inventory.get(SlotID(0)).unwrap();
@@ -95,17 +95,17 @@ mod tests {
 
         slot.set(Some(Item::Clay), 9999);
 
-        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(slice.insert(&mut inventory, &mut slot, 0));
         assert!(inventory.get(SlotID(0)).is_some());
 
         slot.set(Some(Item::Clay), 9999);
 
-        assert!(slice.insert(&mut inventory, &mut slot));
+        assert!(slice.insert(&mut inventory, &mut slot, 0));
         assert!(inventory.get(SlotID(1)).is_some());
         
         slot.set(Some(Item::Clay), 1);
 
-        assert!(!slice.insert(&mut inventory, &mut slot));
+        assert!(!slice.insert(&mut inventory, &mut slot, 0));
     }
     #[test]
     fn port_target() {
@@ -150,7 +150,7 @@ mod tests {
         {
             let slot_0 = inventory.get_mut(SlotID(0));
             assert!(slot_0.is_some());
-            slot_0.unwrap().insert(&mut slot);
+            slot_0.unwrap().insert(&mut slot, 0);
         }
 
         let buff = port.get_first_buff(&inventory);
@@ -197,7 +197,7 @@ mod tests {
             assert!(slot_0.is_some());
             let slot_0 = slot_0.unwrap();
 
-            slot_0.insert(&mut initial_slot);
+            slot_0.insert(&mut initial_slot, 0);
 
             assert_eq!(slot_0.get().0, Some(Item::Clay));
         }
@@ -264,7 +264,7 @@ mod tests {
             assert!(slot_0.is_some());
             let slot_0 = slot_0.unwrap();
 
-            slot_0.insert(&mut initial_slot);
+            slot_0.insert(&mut initial_slot, 0);
 
             assert_eq!(slot_0.get().0, Some(Item::Clay));
         }
@@ -276,7 +276,7 @@ mod tests {
             assert!(slot_1.is_some());
             let slot_1 = slot_1.unwrap();
 
-            slot_1.insert(&mut initial_slot);
+            slot_1.insert(&mut initial_slot, 0);
 
             assert_eq!(slot_1.get().0, Some(Item::Clay));
         }

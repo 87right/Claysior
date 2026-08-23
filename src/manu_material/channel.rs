@@ -87,12 +87,12 @@ where
         match order.logistics_type {
             LogisticsType::InputOutput => {
                 for port in self.input.iter_mut() {
-                    port.insert(inventory, &mut slot.slot);
+                    port.insert(inventory, &mut slot.slot, order.cd_ticks);
                 }
             },
             LogisticsType::OpenPull => {
                 for port in self.pull.iter_mut() {
-                    if port.insert(inventory, &mut slot.slot) {
+                    if port.insert(inventory, &mut slot.slot, order.cd_ticks) {
                         port.used();
                         break;
                     }
@@ -143,11 +143,11 @@ where
         }
         None
     }
-    pub fn insert(&mut self, inventory: &mut Inventory<T>, slot: &mut MaterialSlot<T>) -> bool {
+    pub fn insert(&mut self, inventory: &mut Inventory<T>, slot: &mut MaterialSlot<T>, cd_ticks: u64) -> bool {
         let mut result = false;
         for id in self.slot.get_slot_id(inventory).iter() {
             if let Some(to_slot) = inventory.get_mut(*id) {
-                result |= to_slot.insert(slot);
+                result |= to_slot.insert(slot, cd_ticks);
             }
         }
         result
