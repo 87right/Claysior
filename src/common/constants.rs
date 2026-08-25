@@ -8,5 +8,6 @@ impl GameLayer {
 
 pub struct GameSetting;
 impl GameSetting {
-    pub const CELL_SIZE: f32 = 32.;
+    pub const CELL_SIZE: f32 = 32.0;
+    pub const TPS: f64 = 20.0;
 }

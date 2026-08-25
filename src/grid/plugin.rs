@@ -15,7 +15,7 @@ fn insert_resource(app: &mut App) {
 }
 
 fn configure_system_set(app: &mut App) {
-    app.insert_resource(Time::<Fixed>::from_hz(1.0));
+    app.insert_resource(Time::<Fixed>::from_hz(GameSetting::TPS));
     app.configure_sets(
         FixedUpdate,
         (
