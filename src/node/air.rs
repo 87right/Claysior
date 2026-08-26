@@ -15,11 +15,30 @@ use crate::prelude::*;
                 GridSlice::Specific { pos: GridPos {x: 1, y: 0} }
             )
         ).add_port(
+            PortType::Output,
+            Port::default().configure_target(
+                GridSlice::Specific { pos: GridPos {x: 0, y: 1} }
+            )
+        ).add_port(
             PortType::Input,
             Port::default().configure_target(GridSlice::Any)
-        )
+        ).configure_cd(10)
     }),
     AutoInventoryDisplay::<Item>::new(SlotID(0), Vec2 { x: 15.0, y: 15.0 })
 )]
 pub struct Air;
-impl BasicNode for Air {}
+impl BasicNode for Air {
+    fn plugin(app: &mut App) {
+        app.add_observer(on_clicked);
+    }
+}
+
+fn on_clicked(
+    trigger: On<grid::Clicked>,
+    mut air_q: Query<&mut Inventory::<Item>, With<Air>>,
+) {
+    if let Ok(mut inv) = air_q.get_mut(trigger.entity) 
+    && let Some(slot) = inv.get_mut(SlotID(0)) {
+        slot.set(Some(Item::Clay), 1);
+    }
+}

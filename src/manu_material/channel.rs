@@ -115,6 +115,10 @@ where
     pub fn test_constructor(f: fn(Self) -> Self) -> Self {
         f(Self::default())
     }
+    pub fn configure_cd(mut self, value: u64) -> Self {
+        self.cd_ticks = value;
+        self
+    }
 }
 
 impl<T> Port<T>

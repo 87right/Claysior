@@ -55,44 +55,9 @@ pub fn create_empty_world(
 fn test(
     trigger: On<GridClicked>, 
     mut commands: Commands, 
-    mut inv_q: Query<&mut Inventory<Item>>,
     grid: Res<GridEntityMap>
 ) {
-    let pos = trigger.index;
-    if let Some(e) = grid.get(GridPos { x: pos.x as u64, y: pos.y as u64 }) {
-        if let Ok(mut inv) = inv_q.get_mut(e) {
-            if inv.get(SlotID(0)).and_then(|x| x.get_raw().0).is_none() {
-                let mut slot = MaterialSlot::default();
-                slot.set(Some(Item::Clay), 1);
-                inv.apply_buff(&MaterialSlotBuff { 
-                    slot,
-                    id: SlotID(0), 
-                });
-                info!("クリックされたインベントリにテスト用アイテムを挿入しました: {}個", inv.get(SlotID(0)).unwrap().get_raw().1);
-            } else {
-                info!("現在の個数: {}個", inv.get(SlotID(0)).unwrap().get_raw().1);
-                commands.grid(GridPos::new(pos.x as u64, pos.y as u64))
-                    .replace(node::Air);
-            }
-        } else {
-            commands.entity(e).insert((
-                Channel::<Item>::default()
-                    .add_port(
-                        PortType::Input,
-                        Port::default()
-                            .configure_target(
-                                GridSlice::Any
-                            )
-                    ).add_port(
-                        PortType::Output,
-                        Port::default()
-                            .configure_target(
-                                GridSlice::Specific { pos: GridPos { x: 1, y: 0 } }
-                            ) 
-                    ),
-                Inventory::<Item>::new(1),
-            ));
-            info!("チャンネルとインベントリを挿入しました");
-        }
+    if let Some(entity) = grid.get(GridPos { x: trigger.index.x as u64, y: trigger.index.y as u64 }) {
+        commands.trigger(grid::Clicked { entity });
     }
 }

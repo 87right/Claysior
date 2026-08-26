@@ -3,6 +3,6 @@ pub mod grid {
 
     #[derive(EntityEvent)]
     pub struct Clicked {
-        entity: Entity
+        pub entity: Entity
     }
 }

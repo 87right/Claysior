@@ -203,6 +203,7 @@ where
                 self.volume = max_size;
                 (Some(value), over)
             } else {
+                println!("clamp 関数 よし！ 最大: {max_size}, 現在: {}, slot: {}, item: {}", self.volume, self.setting.max_volume, value.get_max_size());
                 (None, 0)
             }
         } else {
