@@ -52,10 +52,13 @@ where
                         slot_id: *id
                     }
                 }).collect();
+            let Some(MaterialSlotBuff::<T> {slot: _, id: from_slot}) = order.slot else {
+                continue;
+            };
             writer.write(MaterialMoved { 
                 from: MaterialSlotIdentifyer { 
                     pos: order.from, 
-                    slot_id: SlotID(order.client_id) 
+                    slot_id: from_slot
                 }, 
                 to: wrapped_moved_data, 
                 is_taken: order.slot.is_some_and(|x| x.slot.get_raw().0.is_none()),

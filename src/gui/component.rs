@@ -47,7 +47,7 @@ pub mod interactive{
 }
 
 #[derive(Component)]
-pub struct AutoInventoryDisplay<T> 
+pub struct AutoInventoryDisplayUnit<T> 
 where 
     T: DisplayableManuMaterial
 {
@@ -56,7 +56,8 @@ where
     pub pos: Vec2,
     phantom_data: Option<T>,
 }
-impl<T> AutoInventoryDisplay<T>
+
+impl<T> AutoInventoryDisplayUnit<T>
 where 
     T: DisplayableManuMaterial
 {
@@ -67,6 +68,28 @@ where
             pos,
             phantom_data: None,
         }
+    }
+}
+
+#[derive(Component)]
+pub struct AutoInventoryDisplay<T> 
+where 
+    T: DisplayableManuMaterial
+{
+    pub content: Vec<AutoInventoryDisplayUnit<T>>
+}
+impl<T> AutoInventoryDisplay<T>
+where 
+    T: DisplayableManuMaterial
+{
+    pub fn new(f: fn(Self) -> Self) -> Self {
+        f(Self {
+            content: vec![]
+        })
+    }
+    pub fn add(mut self, slot_id: SlotID, pos: Vec2) -> Self {
+        self.content.push(AutoInventoryDisplayUnit::<T>::new(slot_id, pos));
+        self
     }
 }
 

@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Component)]
 #[require(
-    Inventory::<Item>::test_constructor(1, |mut x| {
+    Inventory::<Item>::test_constructor(4, |mut x| {
         for slot in x.iter_mut() {
             slot.setting().set_max_volume(1);
         }
@@ -24,7 +24,13 @@ use crate::prelude::*;
             Port::default().configure_target(GridSlice::Any)
         ).configure_cd(10)
     }),
-    AutoInventoryDisplay::<Item>::new(SlotID(0), Vec2 { x: 15.0, y: 15.0 })
+    AutoInventoryDisplay::<Item>::new(|x| {
+        x
+            .add(SlotID(0), Vec2 { x: 7.5, y: 7.5 })
+            .add(SlotID(1), Vec2 { x: 7.5, y: 22.5 })
+            .add(SlotID(2), Vec2 { x: 22.5, y: 7.5 })
+            .add(SlotID(3), Vec2 { x: 22.5, y: 22.5 })
+    }),
 )]
 pub struct Air;
 impl BasicNode for Air {

@@ -47,12 +47,20 @@ fn update_debug(
 fn register_hooks<T: DisplayableManuMaterial>(world: &mut World) {
     world.register_component_hooks::<AutoInventoryDisplay<T>>()
         .on_remove(|mut world, context| {
+            let mut entities = vec![];
             if let Ok(entity) = world.get_entity(context.entity)
-            && let Ok(display_entity) = entity.get_components::<&AutoInventoryDisplay<T>>()
-            && let Some(display_entity) = display_entity.curr {
+            && let Ok(display_entity) = entity.get_components::<&AutoInventoryDisplay<T>>() { 
+                for display_entity in &display_entity.content {
+                    if let Some(display_entity) = display_entity.curr {
+                        entities.push(display_entity);
+                    }
+                }
+            }
+            for display_entity in entities {
                 world.commands().entity(display_entity).despawn();
-            };
-        });
+            }
+        }
+    );
 }
 
 fn draw_grid_line(
@@ -235,35 +243,38 @@ where
         if moved_data.is_taken
         && let Some(from_entity) = grid.get(moved_data.from.pos) 
         && let Ok((_, mut cont)) = targ.get_mut(from_entity) {
-            stripped_entity = cont.curr.take();
-            from_pos += cont.pos;
+            for cont in &mut cont.content {
+                if cont.index == moved_data.from.slot_id {
+                    stripped_entity = cont.curr.take();
+                    from_pos += cont.pos;
+                    info!("Found");
+                    break;
+                }
+            }
         }
         for MaterialSlotIdentifyer{pos, slot_id} in &moved_data.to {
             if let Some(to_entity) = grid.get(*pos)
             && let Ok((inv, mut cont)) = targ.get_mut(to_entity) {
-                if let Some(entity) = stripped_entity.take() {
-                    cont.curr = Some(entity);
-                    commands.entity(entity).insert(
-                        LinearInterpolation {
+                for cont in &mut cont.content {
+                    if cont.index != *slot_id {
+                        continue;
+                    }
+                    let li = LinearInterpolation {
                             from: from_pos,
                             to: pos.into_world_pos() + cont.pos,
                             timer: Timer::from_seconds(moved_data.duration, TimerMode::Once),
                             duration: moved_data.duration,
-                        }
-                    );
-                } else if let Some(item) = inv.get(*slot_id) 
-                && let Some(item) = item.get_raw().0 {
-                    cont.curr = Some(
-                        item.insert_texture(commands.spawn(
-                            LinearInterpolation {
-                                from: from_pos,
-                                to: pos.into_world_pos() + cont.pos,
-                                timer: Timer::from_seconds(moved_data.duration, TimerMode::Once),
-                                duration: moved_data.duration,
-                            }
-                        )).id()
-                    );
-                }
+                    };
+                    
+                    if let Some(entity) = stripped_entity.take() {
+                        cont.curr = Some(entity);
+                        commands.entity(entity).insert(li);
+                    } else if let Some(item) = inv.get(*slot_id) 
+                    && let Some(item) = item.get_raw().0 {
+                        cont.curr = Some(item.insert_texture(commands.spawn(li)).id());
+                    }
+                    break;
+                } 
             }
         }
     }
