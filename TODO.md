@@ -2,7 +2,7 @@
 
 > 主な目標点
 > 1. `Query<..., With<LeftClick>>` などの `System Poling` ベースから、`Observer` を用いた `Trigger` ベースに移行。
-> 2. `on_placed`（旧 `BasicNode trait` 内） 相当の処理を、`ComponentHook` を用いた自動発火へ移行する。
+> 2. `on_placed`（旧 `BasicNode trait` 内） 相当の処理を、`ComponentHook` を用いた自動発火へ移行する。(方針を変更済み)
 > 3. マップサイズを可変にする。
 > 4. 物流をグラフ化して、物流システムをよりきれいにする。
 > 5. `Sprite` の再利用を徹底して、アニメーションの負荷・滑らかさの改善。
@@ -18,10 +18,12 @@
 - [ ] `Camera Zoom System` がカーソル位置を考慮するようにする
 - [x] `Grid` にワールド初期化を実装
 - [x] `Consumable` に `Inventory<T>` と `Channel<T>` を実装
-- [ ] `Grid` に `Trigger` たちを生やす
+- [x] `Grid` に `Trigger` たちを生やす
 - [ ] `Node` のテスト実装（コンベア）
 - [ ] `GUI` のテスト実装（`Node` の状態管理）
 - [x] FPS 表示機能（クォリティ問わず）
+- [ ] `AutoInventoryDisplay` の、`Displayable` の物流を自動的に表示するようにする
+- [ ] `Inventory` を参照して、`Channel` から発行する物流タスクを事前に絞る
 
 
 :::archived

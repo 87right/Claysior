@@ -69,3 +69,17 @@ where
         }
     }
 }
+
+#[derive(Component)]
+pub struct LinearInterpolation {
+    pub from: Vec2,
+    pub to: Vec2,
+    pub timer: Timer,
+    pub duration: f32,
+}
+
+impl LinearInterpolation {
+    pub fn get_cur_pos(&self) -> Vec2 {
+        (self.to - self.from) * (1.0 - self.timer.remaining().as_secs_f32() / self.duration) + self.from
+    }
+}

@@ -88,12 +88,12 @@ where
         match order.logistics_type {
             LogisticsType::InputOutput => {
                 for port in self.input.iter_mut() {
-                    port.insert(inventory, &mut slot.slot, order.cd_ticks);
+                    port.insert_with_rec(inventory, &mut slot.slot, order.cd_ticks, &mut order.moved_slot_id);
                 }
             },
             LogisticsType::OpenPull => {
                 for port in self.pull.iter_mut() {
-                    if port.insert(inventory, &mut slot.slot, order.cd_ticks) {
+                    if port.insert_with_rec(inventory, &mut slot.slot, order.cd_ticks, &mut order.moved_slot_id) {
                         port.used();
                         break;
                     }
@@ -154,6 +154,18 @@ where
         for id in self.slot.get_slot_id(inventory).iter() {
             if let Some(to_slot) = inventory.get_mut(*id) {
                 result |= to_slot.insert(slot, cd_ticks);
+            }
+        }
+        result
+    }
+    pub fn insert_with_rec(&mut self, inventory: &mut Inventory<T>, slot: &mut MaterialSlot<T>, cd_ticks: u64, rec: &mut Vec<SlotID>) -> bool {
+        let mut result = false;
+        for id in self.slot.get_slot_id(inventory).iter() {
+            if let Some(to_slot) = inventory.get_mut(*id) {
+                if to_slot.insert(slot, cd_ticks) {
+                    result = true;
+                    rec.push(*id);
+                }
             }
         }
         result

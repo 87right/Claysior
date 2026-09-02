@@ -9,18 +9,20 @@ impl Plugin for GUIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Debug(false, Timer::from_seconds(1., TimerMode::Repeating)));
         app.add_systems(Startup, (on_grid_reload, register_hooks::<Item>));
-        app.add_systems(Update, (
+        app.add_systems(PostUpdate, (
             update_debug,
             switch_debug_mode,
             on_window_resized,
             draw_grid_line,
             consume_image_buff,
             auto_item_display::<Item>,
+            linear_interpolation,
         ));
         app.add_systems(Update, (
             bind_full_scr,
             on_grid_clicked,
         ).in_set(InputLayer::GUI));
+        app.add_message::<MaterialMoved>();
     }
 }
 
@@ -219,30 +221,63 @@ fn consume_image_buff(
 
 fn auto_item_display<T>
 (
+    mut reader: MessageReader<MaterialMoved>,
     mut commands: Commands,
-    targ: Query<(&GridPos, &Inventory<T>, &mut AutoInventoryDisplay<T>), Changed<Inventory<Item>>>,
+    mut targ: Query<(&Inventory<T>, &mut AutoInventoryDisplay<T>), Changed<Inventory<T>>>,
+    grid: Res<GridEntityMap>,
 )
 where 
     T: DisplayableManuMaterial
 {
-    for (pos, inv, mut cont) in targ {
-        if let Some(item) = inv.get(cont.index) 
-        && let Some(item) = item.get_raw().0{
-            if let Some(pre) = cont.curr {
-                item.insert_texture(commands.entity(pre));
-            } else {
-                let spawn_pos = pos.into_world_pos() + cont.pos;
-                cont.curr = Some(
-                    item.insert_texture(commands.spawn(Transform::from_xyz(
-                        spawn_pos.x, 
-                        spawn_pos.y, 
-                        30.0
-                    ))).id()
-                );
-            }
-        } else if let Some(pre) = cont.curr {
-            commands.entity(pre).despawn();
-            cont.curr = None::<Entity>;
+    for moved_data in reader.read() {
+        let mut stripped_entity = None;
+        let mut from_pos = moved_data.from.pos.into_world_pos();
+        if moved_data.is_taken
+        && let Some(from_entity) = grid.get(moved_data.from.pos) 
+        && let Ok((_, mut cont)) = targ.get_mut(from_entity) {
+            stripped_entity = cont.curr.take();
+            from_pos += cont.pos;
         }
+        for MaterialSlotIdentifyer{pos, slot_id} in &moved_data.to {
+            if let Some(to_entity) = grid.get(*pos)
+            && let Ok((inv, mut cont)) = targ.get_mut(to_entity) {
+                if let Some(entity) = stripped_entity.take() {
+                    cont.curr = Some(entity);
+                    commands.entity(entity).insert(
+                        LinearInterpolation {
+                            from: from_pos,
+                            to: pos.into_world_pos() + cont.pos,
+                            timer: Timer::from_seconds(moved_data.duration, TimerMode::Once),
+                            duration: moved_data.duration,
+                        }
+                    );
+                } else if let Some(item) = inv.get(*slot_id) 
+                && let Some(item) = item.get_raw().0 {
+                    cont.curr = Some(
+                        item.insert_texture(commands.spawn(
+                            LinearInterpolation {
+                                from: from_pos,
+                                to: pos.into_world_pos() + cont.pos,
+                                timer: Timer::from_seconds(moved_data.duration, TimerMode::Once),
+                                duration: moved_data.duration,
+                            }
+                        )).id()
+                    );
+                }
+            }
+        }
+    }
+}
+
+fn linear_interpolation(
+    mut commands: Commands,
+    q: Query<(Entity, &mut Transform, &mut LinearInterpolation)>,
+    time: Res<Time>
+) {
+    for (e, mut transform, mut data) in q {
+        if data.timer.tick(time.delta()).just_finished() {
+            commands.entity(e).remove::<LinearInterpolation>();
+        }
+        transform.translation = data.get_cur_pos().extend(transform.translation.z);
     }
 }

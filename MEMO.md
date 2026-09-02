@@ -1,3 +1,105 @@
+
+---
+
+# HUD の一般化
+
+**ひとまずスパゲティを許容**
+
+理想コード
+```rust
+// 生成するとき
+commands.gui(Transform::from_xyz(/* 座標 */))
+    .button()
+    .display::<DisplayComponent>(|value| value.get_bool_mut());
+
+fn display<T: Component>(&mut self, getter: Fn(&mut T) -> &mut bool) &'_ mut Self {
+    // 適当な処理
+}
+
+// これを自動で実行させたい
+// ついでに`T`に関して重複が無いように
+// 特別な初期化が必要ないように
+fn on_changed(
+    displays: Query<(&mut Button, &mut T), Changed<T>>,
+    /* 適当な引数 */
+) {
+    for (button, t) in displays {
+        let value = button.getter(t); // これで好きな要素を取得
+    }
+}
+```
+
+妥協案の疑似コード
+```rust
+// 宣言
+impl BasicNode for Conveyor {
+    fn addons(&self) {
+        // 使うものを宣言
+        // 表示・非表示を切り替えたいので、処理と実体の登録を分離
+        (
+            GuiAddon::<MaterialSlotHud::<Item>, Inventory::<Item>>,
+            SampleAddonA,
+            SampleAddonB,
+        )
+    }
+}
+
+// 自動生成されるもの（GuiAddon が実装）
+fn system(
+    data: Query<&Inventory<Item>, Changed<Inventory<Item>>>,
+    hud: Query<&mut MaterialSlotHud::<Item>>
+) {
+    for hud in hud {
+        if let Ok(mut inventory) = data.get_mut(hud.target_entity) {
+            hud.update(inventory);
+        }
+    }
+}
+
+// 生成
+commands.entity(conveyor_entity)
+    // gui を構成できる trait の中に type (target_type, handle_type) を持たせる
+    // MaterialSlotHud::<Item> なら MaterialSlot::<Item> 
+    // add_gui (GuiAddon が定義) がアクセス関数の定義を担当して、Fn(target_type) -> handle_type
+    .add_gui::<MaterialSlotHud::<Item>>( /* アクセス関数 */ |inventory| { 
+            inventory.get(SlotID(0)) 
+        }
+    );
+
+
+```
+
+---
+
+# アイテム（`Displayable`）の動きを自動で表示する機能の実装
+
+最上位関数の理想コード
+```rust
+fn temp(
+    temp
+) {
+    for (from, to, time_need) in logs { // logs: { pos: GridPos, diff: Diff }
+        if from.diff.content_remains() // from が空になっていない
+        && let Some(to) = grid.get(to)
+        && let Ok(to) = display_q.get_mut() {
+            to.entity = Some(commands.spawn().id()); // 変更予定
+        } else {
+            let mut entity = None;
+            if let Some(from) = grid.get(from)
+            && let Ok(from) = display_q.get(from) {
+                entity = Some(from.entity.take());
+            }
+            if let Some(to) = grid.get(to)
+            && let Ok(to) = display_q.get_mut(to) {
+                to.entity = entity;
+            }
+        }
+    }
+}
+```
+
+---
+
 # この魔物の整理
 
 ```rust
@@ -110,9 +212,45 @@ fn logistics_system<T>(
   * `InventorySlice` の認識
   * `quick_insert` 
 
+```rust
+fn logistics_system<T>(
+    mut log_node_q: Query<(&mut Channel<T>, &mut Inventory<T>, &GridPos)>,
+    grid: Res<GridEntityMap>
+) 
+where 
+    T: ManuMaterial
+{
+    let mut orders = Vec::<LogisticsOrder::<T>>::default();
+    for (mut channel, _, pos) in &mut log_node_q {
+        // タスクの確保
+        channel.pull_order(*pos, &mut orders);
+    }
+    for mut order in orders {
+        // from から書き込み
+        if let Some(from_entity) = grid.get(order.from)
+        && let Ok((mut from_channel, mut from_inventory, _from_pos)) = (&mut log_node_q).get_mut(from_entity) {
+            from_channel.write_order(&mut from_inventory, &mut order);
+        } else {
+            continue;
+        }
+        // to が受け取る
+        if let Some(to_entity) = grid.get(order.to)
+        && let Ok((mut to_channel, mut to_inventory, _to_pos)) = (&mut log_node_q).get_mut(to_entity) {
+            to_channel.response_order(&mut to_inventory, &mut order);
+        } else {
+            continue;
+        }
+        // from が変更を受け取る
+        if let Some(from_entity) = grid.get(order.from)
+        && let Ok((mut from_channel, mut from_inventory, _from_pos)) = (&mut log_node_q).get_mut(from_entity) {
+            from_channel.check_order(&mut from_inventory, &order);
+        } else {
+            continue;
+        }
+    }
+}
+```
 
-.
-└── src
-    ├── gui
-    ├── grid
-    └── input
+あとはこれに、`ManuMaterial` の移動通知をくっつけるだけ
+
+それと、等分配機能の実装もできそうなら

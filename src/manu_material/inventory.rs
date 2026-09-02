@@ -45,6 +45,12 @@ pub enum InventorySlice {
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct SlotID(pub usize);
 
+#[derive(Clone, Copy)]
+pub struct MaterialSlotIdentifyer {
+    pub pos: GridPos,
+    pub slot_id: SlotID,
+}
+
 impl<T> Default for MaterialSlot<T>
 where 
     T: ManuMaterial
@@ -203,7 +209,6 @@ where
                 self.volume = max_size;
                 (Some(value), over)
             } else {
-                println!("clamp 関数 よし！ 最大: {max_size}, 現在: {}, slot: {}, item: {}", self.volume, self.setting.max_volume, value.get_max_size());
                 (None, 0)
             }
         } else {

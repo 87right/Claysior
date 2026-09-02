@@ -26,6 +26,7 @@ pub use {
         gui::{
             component::*,
             common::*,
+            message::*,
         },
         node::{
             common::*,
